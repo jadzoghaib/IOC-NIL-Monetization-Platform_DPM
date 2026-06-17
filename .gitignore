@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+backend/.venv/
+.venv/
+
+# Builds
+frontend/dist/
+dist/
+
+# Env / secrets
+.env
+backend/.env
+*.local
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/
+
+# Tooling / worktrees
+.claude/
+
+# Backend logs / runtime artifacts
+backend/*.log
+backend/*.log.err
+backend/uv_v*.log
+backend/uv_v*.log.err
+backend/uvicorn_*.txt
+backend/enrich_*.txt
+
+# Large data / analysis files
+kano_analysis.xlsx
+backend/data/

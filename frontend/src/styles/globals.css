@@ -1,0 +1,225 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── True Olympic ring palette (global) ── */
+:root {
+  --ring-blue:   #0081C8;
+  --ring-yellow: #FCB131;
+  --ring-green:  #009F3D;
+  --ring-red:    #EE334E;
+  --ring-black:  #101010;
+  --pro-purple:  #A78BFA;
+
+  /* Legacy vars — dark defaults (overridden per theme below) */
+  --bg-primary:   #06061A;
+  --bg-card:      #0D0D2B;
+  --bg-elevated:  #12123A;
+  --gold:         #FFD700;
+  --gold-dim:     #B8960C;
+  --oly-red:      #E63946;
+  --oly-blue:     #457B9D;
+  --oly-green:    #2A9D8F;
+  --oly-navy:     #1D3557;
+  --text:         #F5F7FA;
+  --text-muted:   #A4ABB6;
+  --border:       rgba(255,255,255,0.08);
+
+  /* Design-system vars — dark defaults (set before JS hydrates) */
+  --bg:          #0A0B0D;
+  --bg-sub:      #0F1013;
+  --surface:     #15171B;
+  --surface-2:   #1C1F24;
+  --text-faint:  #6B7280;
+  --border-2:    rgba(255,255,255,.17);
+  --accent:      #2BA3EC;
+  --accent-ink:  #04121C;
+  --ink:         #FFFFFF;
+  --ink-text:    #0A0B0D;
+  --ring-mono:   #F5F7FA;
+  --shadow:      0 1px 2px rgba(0,0,0,.5), 0 16px 36px -16px rgba(0,0,0,.7);
+  --shadow-lg:   0 2px 8px rgba(0,0,0,.6), 0 40px 80px -28px rgba(0,0,0,.85);
+  --glass:       rgba(16,18,22,.72);
+}
+
+/* ── "Broadcast Light" theme ── */
+[data-theme="light"] {
+  --bg:          #FFFFFF;
+  --bg-sub:      #F3F4F6;
+  --bg-card:     #FFFFFF;
+  --surface:     #FAFAFA;
+  --surface-2:   #F3F4F6;
+  --text:        #16181D;
+  --text-muted:  #5A6069;
+  --text-faint:  #9CA2AC;
+  --border:      #E6E8EC;
+  --border-2:    #D7DAE0;
+  --accent:      #0081C8;
+  --accent-ink:  #FFFFFF;
+  --ink:         #16181D;
+  --ink-text:    #FFFFFF;
+  --ring-mono:   #16181D;
+  --shadow:      0 1px 2px rgba(16,24,40,.04), 0 12px 28px -12px rgba(16,24,40,.12);
+  --shadow-lg:   0 2px 6px rgba(16,24,40,.06), 0 30px 60px -24px rgba(16,24,40,.22);
+  --glass:       rgba(255,255,255,.72);
+  /* Legacy mode-page vars */
+  --bg-primary:  #F8F9FB;
+  --bg-elevated: #F0F2F5;
+}
+
+/* ── "Podium Dark" theme ── */
+[data-theme="dark"] {
+  --bg:          #0A0B0D;
+  --bg-sub:      #0F1013;
+  --bg-card:     #15171B;
+  --surface:     #15171B;
+  --surface-2:   #1C1F24;
+  --text:        #F5F7FA;
+  --text-muted:  #A4ABB6;
+  --text-faint:  #6B7280;
+  --border:      rgba(255,255,255,.09);
+  --border-2:    rgba(255,255,255,.17);
+  --accent:      #2BA3EC;
+  --accent-ink:  #04121C;
+  --ink:         #FFFFFF;
+  --ink-text:    #0A0B0D;
+  --ring-mono:   #F5F7FA;
+  --ring-black:  #C9CDD3;
+  --shadow:      0 1px 2px rgba(0,0,0,.5), 0 16px 36px -16px rgba(0,0,0,.7);
+  --shadow-lg:   0 2px 8px rgba(0,0,0,.6), 0 40px 80px -28px rgba(0,0,0,.85);
+  --glass:       rgba(16,18,22,.72);
+  /* Legacy mode-page vars */
+  --bg-primary:  #06061A;
+  --bg-card:     #0D0D2B;
+  --bg-elevated: #12123A;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: rgba(255,215,0,0.3); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,215,0,0.6); }
+
+/* Selection */
+::selection { background: rgba(255,215,0,0.25); }
+
+/* Form controls */
+select, input, textarea { color-scheme: dark; }
+select option, select optgroup { background: #0D0D2B; color: #ffffff; }
+[data-theme="light"] select, [data-theme="light"] input, [data-theme="light"] textarea { color-scheme: light; }
+[data-theme="light"] select option, [data-theme="light"] select optgroup { background: #ffffff; color: #16181D; }
+
+/* ── Light-mode overrides for hardcoded Tailwind white utilities ──────────── */
+/* text-white variants */
+[data-theme="light"] .text-white          { color: var(--text)           !important; }
+[data-theme="light"] .text-white\/90      { color: rgba(22,24,29,.90)    !important; }
+[data-theme="light"] .text-white\/80      { color: rgba(22,24,29,.80)    !important; }
+[data-theme="light"] .text-white\/70      { color: rgba(22,24,29,.70)    !important; }
+[data-theme="light"] .text-white\/60      { color: rgba(22,24,29,.60)    !important; }
+[data-theme="light"] .text-white\/50      { color: rgba(22,24,29,.50)    !important; }
+[data-theme="light"] .text-white\/45      { color: rgba(22,24,29,.45)    !important; }
+[data-theme="light"] .text-white\/40      { color: rgba(22,24,29,.40)    !important; }
+[data-theme="light"] .text-white\/35      { color: rgba(22,24,29,.35)    !important; }
+[data-theme="light"] .text-white\/30      { color: rgba(22,24,29,.30)    !important; }
+[data-theme="light"] .text-white\/25      { color: rgba(22,24,29,.25)    !important; }
+[data-theme="light"] .text-white\/20      { color: rgba(22,24,29,.20)    !important; }
+/* hover:text-white variants */
+[data-theme="light"] .hover\:text-white\/90:hover { color: rgba(22,24,29,.90) !important; }
+[data-theme="light"] .hover\:text-white\/80:hover { color: rgba(22,24,29,.80) !important; }
+[data-theme="light"] .hover\:text-white\/70:hover { color: rgba(22,24,29,.70) !important; }
+[data-theme="light"] .hover\:text-white:hover      { color: var(--text)        !important; }
+/* border-white variants */
+[data-theme="light"] .border-white\/5  { border-color: rgba(22,24,29,.05) !important; }
+[data-theme="light"] .border-white\/7  { border-color: rgba(22,24,29,.07) !important; }
+[data-theme="light"] .border-white\/8  { border-color: rgba(22,24,29,.08) !important; }
+[data-theme="light"] .border-white\/10 { border-color: rgba(22,24,29,.10) !important; }
+[data-theme="light"] .border-white\/15 { border-color: rgba(22,24,29,.15) !important; }
+[data-theme="light"] .border-white\/20 { border-color: rgba(22,24,29,.20) !important; }
+[data-theme="light"] .border-white\/25 { border-color: rgba(22,24,29,.25) !important; }
+[data-theme="light"] .border-white\/30 { border-color: rgba(22,24,29,.30) !important; }
+[data-theme="light"] .border-white\/40 { border-color: rgba(22,24,29,.40) !important; }
+/* hover:border-white variants */
+[data-theme="light"] .hover\:border-white\/25:hover { border-color: rgba(22,24,29,.25) !important; }
+[data-theme="light"] .hover\:border-white\/30:hover { border-color: rgba(22,24,29,.30) !important; }
+/* bg-white opacity variants (arbitrary values) */
+[data-theme="light"] .bg-white\/\[0\.02\] { background-color: rgba(22,24,29,.02) !important; }
+[data-theme="light"] .bg-white\/\[0\.03\] { background-color: rgba(22,24,29,.03) !important; }
+[data-theme="light"] .bg-white\/\[0\.04\] { background-color: rgba(22,24,29,.04) !important; }
+[data-theme="light"] .bg-white\/\[0\.05\] { background-color: rgba(22,24,29,.05) !important; }
+[data-theme="light"] .bg-white\/\[0\.06\] { background-color: rgba(22,24,29,.06) !important; }
+[data-theme="light"] .bg-white\/\[0\.07\] { background-color: rgba(22,24,29,.07) !important; }
+/* hover:bg-white variants */
+[data-theme="light"] .hover\:bg-white\/\[0\.06\]:hover { background-color: rgba(22,24,29,.06) !important; }
+[data-theme="light"] .hover\:bg-white\/\[0\.08\]:hover { background-color: rgba(22,24,29,.08) !important; }
+/* Modal/drawer overlays need to stay dark */
+[data-theme="light"] .bg-black\/65 { background-color: rgba(0,0,0,.65) !important; }
+[data-theme="light"] .bg-black\/50 { background-color: rgba(0,0,0,.50) !important; }
+/* bg-bg-primary/80 uses CSS var — Tailwind can't apply alpha to it so fix inline */
+.bg-bg-primary\/80 { background-color: var(--glass) !important; }
+
+/* Sport pictogram: white in dark mode, dark in light mode */
+.sport-pictogram { filter: invert(1); }
+[data-theme="light"] .sport-pictogram { filter: invert(0); }
+
+/* Placeholder text in light mode */
+[data-theme="light"] .placeholder-white\/25::placeholder { color: rgba(22,24,29,.35) !important; }
+[data-theme="light"] .placeholder-white\/30::placeholder { color: rgba(22,24,29,.35) !important; }
+
+/* Bebas Neue display class */
+.font-display { font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.02em; }
+
+/* Gold text gradient */
+.text-gold-gradient {
+  background: linear-gradient(135deg, #FFD700 0%, #FF8C00 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Olympic gradient text */
+.text-olympic-gradient {
+  background: linear-gradient(90deg, #E63946 0%, #FFD700 25%, #2A9D8F 50%, #457B9D 75%, #E63946 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glassmorphism card */
+.glass-card {
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* No-select utility */
+.no-select { user-select: none; -webkit-user-select: none; }
+
+/* Noise overlay for depth */
+.noise::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
