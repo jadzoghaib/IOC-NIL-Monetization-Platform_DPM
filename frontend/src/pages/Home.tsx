@@ -45,8 +45,8 @@ const MODES = [
 const STATS = [
   { value: '206',    label: 'Nations at the Games' },
   { value: '3.9B',   label: 'Global viewers' },
-  { value: '11,652', label: 'Athlete profiles' },
-  { value: '8',      label: 'Fan archetypes' },
+  { value: '11,714', label: 'Athlete profiles' },
+  { value: '8',      label: 'Athlete archetypes' },
 ]
 
 const RING_STRIP = ['#0081C8', '#FCB131', '#101010', '#009F3D', '#EE334E']

@@ -1,3 +1,8 @@
+/**
+ * ⚠️ LEGACY / UNUSED — paired with the original 8-archetype QuizView. The live
+ * Fan flow uses ConnectionResultsView (see FanEngagement.tsx). Kept for reference
+ * only; not imported by any routed page. Safe to delete.
+ */
 import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import type { useQuiz } from '../hooks/useQuiz'

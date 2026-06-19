@@ -1,3 +1,8 @@
+/**
+ * ⚠️ LEGACY / UNUSED — state for the original 8-archetype quiz (QuizView /
+ * ResultsView). The live Fan flow uses useConnectionQuiz. Kept for reference
+ * only; not imported by any routed page. Safe to delete.
+ */
 import { useState, useCallback } from 'react'
 import type { Motivation, Engagement } from '../data/athletes'
 import { MOTIVATION_QS, ENGAGEMENT_QS } from '../data/archetypes'

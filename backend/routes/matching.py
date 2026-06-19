@@ -8,7 +8,7 @@ Weights (additive score):
   +15  athlete.is_medalist (recognizable)
   +stars * 2  (so 5★ = +10, 1★ = +2)
   +5  story_type match
-  +5  personality match
+  +6  personality match — hype→viral athlete, grind→medalist/veteran; +3 mix
 
 Returns top matches with explanations of WHY they matched.
 """
@@ -116,15 +116,25 @@ def match(profile: MatchProfile):
         elif st == "dominance" and a.get("is_medalist") and stars >= 4.5:
             score += 5
             reasons.append({"icon": "👑", "label": "Pure dominance — story you love"})
-        elif st == "culture" and home_country and athlete_country == home_country:
+        elif st == "culture" and home_country and athlete_country.lower() == home_country.lower():
             score += 5
             reasons.append({"icon": "🌍", "label": "Cultural pride from your country"})
         elif st == "mental_health" and pageviews > 20000:
             score += 3  # weaker signal — needs LLM detection later
 
-        if profile.personality and stars >= 3:
-            # weak personality signal — light boost only
-            score += 2
+        # Personality fit — distinct, explainable bonuses per archetype rather than
+        # a flat boost, so hype / grind / mix actually change the ranking.
+        pers = profile.personality
+        n_games = len(a.get("games") or [])
+        if pers == "hype" and pageviews > 50000:
+            score += 6
+            reasons.append({"icon": "🔥", "label": "High-energy star you'd hype"})
+        elif pers == "grind" and (a.get("is_medalist") or n_games >= 2):
+            score += 6
+            reasons.append({"icon": "💪", "label": "Earned-it grinder, your type"})
+        elif pers == "mix" and stars >= 3:
+            score += 3
+            reasons.append({"icon": "⚡", "label": "Balanced all-rounder"})
 
         scored.append({
             "athlete": a,

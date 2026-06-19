@@ -172,7 +172,7 @@ export default function BusinessMode() {
             <AnimatePresence mode="wait">
               {view === 'roster' && <BusinessDiscoverView key="roster" onViewAthlete={openAthlete} games={games} />}
               {view === 'athlete' && athleteId && <BusinessAthleteView key={`athlete-${athleteId}`} athleteId={athleteId} onBack={backToRoster} />}
-              {view === 'campaign' && <CampaignBuilderView key="campaign" games={games} brand={sponsor.brand} onSent={() => goTo('offers')} />}
+              {view === 'campaign' && <CampaignBuilderView key="campaign" games={games} brand={sponsor.brand} defaultCategory={sponsor.primaryCategory} onSent={() => goTo('offers')} />}
               {view === 'offers' && <SponsorOffersView key="offers" brand={sponsor.brand} onScout={() => goTo('roster')} />}
             </AnimatePresence>
           </div>

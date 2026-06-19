@@ -50,6 +50,12 @@ export interface AthleteRecord {
   stars: number
   wikipedia_url?: string
   thumbnail?: string  // Wikipedia photo URL
+  // Canonical sponsorship signals — attached by the list + business endpoints
+  // (single source of truth: backend business_metrics) so every view agrees.
+  marketability_score?: number
+  deal_tier?: string
+  tier_color?: string
+  available_categories?: string[]
 }
 
 export interface AthletePage {

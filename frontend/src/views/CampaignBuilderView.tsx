@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { GamesKey } from '../lib/api'
+import InfoPopover from '../components/InfoPopover'
 import {
   addCampaign, addOffers, addMessage, CATEGORIES, REGIONS, BUDGET_BANDS, DEAL_TYPE_META, type DealType,
 } from '../lib/store'
@@ -32,15 +33,20 @@ interface AthleteRow {
   thumbnail?: string; is_medalist?: boolean; stars?: number
   medal_totals?: { gold: number; silver: number; bronze: number }
   pageviews_60d?: number
+  marketability_score?: number       // canonical score from backend business_metrics
+  available_categories?: string[]    // sponsorship categories still open for this athlete
 }
 
 interface Ranked extends AthleteRow {
-  fit: number      // 0–100
+  fit: number      // 0–100 — campaign-adjusted brand fit
   tier: { label: string; color: string }
   amount: number
 }
 
-function marketProxy(a: AthleteRow): number {
+// Base marketability comes from the backend (single source of truth:
+// business_metrics). A local proxy is only a fallback if the field is missing.
+function baseScore(a: AthleteRow): number {
+  if (typeof a.marketability_score === 'number') return a.marketability_score
   const pv = a.pageviews_60d || 0
   const gold = a.medal_totals?.gold || 0
   return Math.min(100,
@@ -49,26 +55,31 @@ function marketProxy(a: AthleteRow): number {
     20 * (gold > 0 ? 1 : a.is_medalist ? 0.75 : 0.4) +
     15)
 }
+// Canonical deal tiers — identical thresholds to backend business_metrics, and
+// derived from the SAME score shown as "Fit" so the label can't disagree with it.
 function tierFor(score: number) {
-  if (score >= 78) return { label: 'Elite', color: '#FFD700' }
-  if (score >= 62) return { label: 'Pro', color: '#A78BFA' }
-  if (score >= 43) return { label: 'Rising', color: '#38BDF8' }
+  if (score >= 80) return { label: 'Elite', color: '#FFD700' }
+  if (score >= 65) return { label: 'Pro', color: '#A78BFA' }
+  if (score >= 45) return { label: 'Rising', color: '#38BDF8' }
   return { label: 'Micro', color: '#34D399' }
 }
 
 interface Props {
   games?: GamesKey
   brand: string
+  defaultCategory?: string   // sponsor's primary category from onboarding
   onSent: () => void
 }
 
-export default function CampaignBuilderView({ games, brand, onSent }: Props) {
+export default function CampaignBuilderView({ games, brand, defaultCategory, onSent }: Props) {
   const [phase, setPhase] = useState<'brief' | 'results'>('brief')
   const [loading, setLoading] = useState(false)
 
-  // Brief
+  // Brief — default the category to the sponsor's primary category when we have it.
   const [name, setName] = useState('')
-  const [category, setCategory] = useState(CATEGORIES[0])
+  const [category, setCategory] = useState(
+    defaultCategory && CATEGORIES.includes(defaultCategory) ? defaultCategory : CATEGORIES[0],
+  )
   const [region, setRegion] = useState(REGIONS[0])
   const [budget, setBudget] = useState(BUDGET_BANDS[1])
   const [dealType, setDealType] = useState<DealType>('brand_ambassador')
@@ -93,26 +104,37 @@ export default function CampaignBuilderView({ games, brand, onSent }: Props) {
       const rows: AthleteRow[] = data.items || []
       const [lo, hi] = BUDGET_RANGE[budget] || [5000, 25000]
       const regionSet = region !== 'Worldwide' ? new Set(REGION_COUNTRIES[region] || []) : null
+      const goalLc = goal.trim().toLowerCase()
 
-      // Score every athlete by base marketability
-      const scored = rows.map(a => ({ ...a, base: marketProxy(a) }))
+      // Campaign-adjusted brand fit: start from the canonical marketability score,
+      // then apply the brief — region preference, brand-category availability,
+      // deal type, and goal keywords. "Fit" and "tier" derive from the SAME number.
+      const computeFit = (a: AthleteRow): number => {
+        const base = baseScore(a)
+        let fit = base
+        if (regionSet) fit += regionSet.has(a.country) ? 10 : -6
+        const catOpen = (a.available_categories || []).includes(category)
+        fit += catOpen ? 8 : -4
+        if (dealType === 'brand_ambassador') fit += base >= 65 ? 4 : -2       // long commitments favour proven names
+        else if (dealType === 'event_appearance' && a.is_medalist) fit += 3   // appearances lean on medal pedigree
+        else if (dealType === 'social_post' && (a.pageviews_60d || 0) > 50000) fit += 3  // posts reward reach
+        if (goalLc && (goalLc.includes((a.sport || '').toLowerCase()) || goalLc.includes((a.country || '').toLowerCase()))) fit += 4
+        return Math.max(0, Math.min(100, Math.round(fit)))
+      }
+
+      const ranked0: Ranked[] = rows.map(a => {
+        const fit = computeFit(a)
+        return { ...a, fit, tier: tierFor(fit), amount: Math.round(lo + (fit / 100) * (hi - lo)) }
+      })
 
       let r: Ranked[]
-      if (!regionSet) {
-        // Worldwide — pure fit ranking
-        r = scored
-          .map(a => { const fit = Math.min(100, a.base); return { ...a, fit, tier: tierFor(fit), amount: Math.round(lo + (fit / 100) * (hi - lo)) } })
-          .sort((x, y) => y.fit - x.fit)
-          .slice(0, 40)
+      if (regionSet) {
+        // Region selected — regional athletes appear first, padded with global top.
+        const inRegion  = ranked0.filter(a => regionSet.has(a.country)).sort((x, y) => y.fit - x.fit)
+        const outRegion = ranked0.filter(a => !regionSet.has(a.country)).sort((x, y) => y.fit - x.fit)
+        r = [...inRegion, ...outRegion].slice(0, 40)
       } else {
-        // Region selected — regional athletes appear first, padded with global top
-        const inRegion  = scored.filter(a => regionSet.has(a.country)).sort((x, y) => y.base - x.base)
-        const outRegion = scored.filter(a => !regionSet.has(a.country)).sort((x, y) => y.base - x.base)
-        r = [...inRegion, ...outRegion].slice(0, 40).map(a => {
-          const local = regionSet.has(a.country)
-          const fit = local ? Math.min(100, a.base + 18) : Math.max(0, a.base - 8)
-          return { ...a, fit, tier: tierFor(a.base), amount: Math.round(lo + (fit / 100) * (hi - lo)) }
-        })
+        r = ranked0.sort((x, y) => y.fit - x.fit).slice(0, 40)
       }
 
       setRanked(r)
@@ -223,9 +245,14 @@ export default function CampaignBuilderView({ games, brand, onSent }: Props) {
       </button>
 
       <div className="mb-4">
-        <h2 className="font-display text-2xl text-white">RANKED FOR: <span style={{ color: ACCENT }}>{category}</span></h2>
+        <h2 className="font-display text-2xl text-white flex items-center gap-2">
+          RANKED FOR: <span style={{ color: ACCENT }}>{category}</span>
+          <InfoPopover title="How ranking works" align="left">
+            <b>What drives the order:</b> each athlete starts from a <b>Marketability Score (0–100)</b> built from Wikipedia pageviews, Olympic medals, sport tier, and country market value. Your brief then adjusts it — <b>{region}</b> preference, <b>{category}</b> category availability, deal type, and budget band. All reach, engagement, and deal figures are <b>modeled estimates</b> for this demo; in production athletes supply verified data.
+          </InfoPopover>
+        </h2>
         <p className="text-white/35 text-sm mt-1">
-          {ranked.length} athletes{region !== 'Worldwide' ? ` · ${region} first` : ''} · {budget}. Click a row to view profile — check box to shortlist.
+          {ranked.length} athletes{region !== 'Worldwide' ? ` · ${region} first` : ''} · {budget}. Click a row to view profile — check box to shortlist. <span className="text-white/25">Fit &amp; pricing are demo estimates.</span>
         </p>
       </div>
 
