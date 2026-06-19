@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { Search, Medal, Landmark, Crown, MapPin, Star, Eye, Dumbbell, TrendingUp, Route, Flag } from 'lucide-react'
+import { Search, Medal, Landmark, Crown, MapPin, Star, Eye, Dumbbell, TrendingUp, Route, Flag, type LucideIcon } from 'lucide-react'
 import type { useFollows } from '../hooks/useFollows'
 import { api } from '../lib/api'
 import type { AthleteRecord, AthletePage, AthleteQuery, GamesKey } from '../lib/api'
@@ -10,7 +10,7 @@ import { sportPictogramUrl, flagImageUrl, countryFlagUrl } from '../lib/sportIco
 import MedalDots from '../components/MedalDots'
 import { labelFor, ATHLETE_LABELS } from '../lib/athleteLabel'
 
-const ARCHETYPE_ICONS: Record<string, React.ComponentType<{ size?: number; color?: string }>> = {
+const ARCHETYPE_ICONS: Record<string, LucideIcon> = {
   legend:       Landmark,
   champion:     Crown,
   hometown:     MapPin,
@@ -352,7 +352,9 @@ function CompactAthleteCard({ athlete, isFollowed, onToggleFollow, onViewProfile
           <MedalDots gold={1} silver={0} bronze={0} size="xs" hideCount />
         ) : null}
         {(athlete.is_flagbearer_open || athlete.is_flagbearer_close) && (
-          <Flag size={12} title="Flagbearer" className="block ml-auto mt-0.5" style={{ color: '#E63946' }} />
+          <span title="Flagbearer" className="block ml-auto mt-0.5">
+            <Flag size={12} style={{ color: '#E63946' }} />
+          </span>
         )}
       </div>
 

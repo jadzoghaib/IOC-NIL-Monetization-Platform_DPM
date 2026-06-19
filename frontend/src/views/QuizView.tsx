@@ -1,3 +1,8 @@
+/**
+ * ⚠️ LEGACY / UNUSED — the original 8-archetype quiz. The live Fan flow uses
+ * ConnectionQuizView + ConnectionResultsView (see FanEngagement.tsx). Kept for
+ * reference only; not imported by any routed page. Safe to delete.
+ */
 import { motion, AnimatePresence } from 'framer-motion'
 import type { useQuiz } from '../hooks/useQuiz'
 import ProgressBar from '../components/ProgressBar'

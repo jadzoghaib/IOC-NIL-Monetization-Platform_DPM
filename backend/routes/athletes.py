@@ -2,6 +2,8 @@ import json
 from pathlib import Path
 from fastapi import APIRouter, HTTPException, Query
 
+from services.business_metrics import compute_business_metrics
+
 router = APIRouter(prefix="/api/athletes", tags=["athletes"])
 
 _FULL_PATH = Path(__file__).parent.parent / "data" / "athletes_full.json"
@@ -142,7 +144,22 @@ def list_athletes(
 
     total = len(data)
     page = data[offset:offset + limit]
-    return {"total": total, "offset": offset, "limit": limit, "items": page}
+    # Attach the canonical marketability score + deal tier (computed by the single
+    # source of truth, business_metrics) so the roster list, Campaign Builder, and
+    # the athlete detail page all rank and label tiers identically. We also surface
+    # which sponsorship categories are still open, so the campaign brief's category
+    # can actually influence ranking.
+    items = []
+    for a in page:
+        bm = compute_business_metrics(a)
+        items.append({
+            **a,
+            "marketability_score":  bm["marketability_score"],
+            "deal_tier":            bm["deal_tier"],
+            "tier_color":           bm["tier_color"],
+            "available_categories": [c["category"] for c in bm["category_availability"] if c["available"]],
+        })
+    return {"total": total, "offset": offset, "limit": limit, "items": items}
 
 
 @router.get("/sports")

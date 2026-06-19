@@ -13,19 +13,25 @@ type Tier = 'All' | 'Elite' | 'Pro' | 'Rising' | 'Micro'
 
 const PAGE = 60
 
-// ── Deal tier logic (mirrors backend, lightweight client proxy) ──────────────
+// ── Deal tier — comes straight from the backend (single source of truth:
+// business_metrics). A local fallback on the canonical 80/65/45 thresholds keeps
+// the UI resilient if the field is ever absent. ────────────────────────────────
+const TIER_COLOR: Record<Exclude<Tier, 'All'>, string> = {
+  Elite: '#FFD700', Pro: '#A78BFA', Rising: '#38BDF8', Micro: '#34D399',
+}
 function dealTier(a: AthleteRecord): { label: Exclude<Tier, 'All'>; color: string } {
-  const pv = a.pageviews_60d || 0
-  const gold = a.medal_totals?.gold || 0
-  const score = Math.min(100,
-    30 * Math.log10(Math.max(pv, 10)) / 7 +
-    25 * ((a.stars || 3) / 5) +
-    20 * (gold > 0 ? 1 : a.is_medalist ? 0.75 : 0.4) +
-    15)
-  if (score >= 70) return { label: 'Elite', color: '#FFD700' }
-  if (score >= 53) return { label: 'Pro', color: '#A78BFA' }
-  if (score >= 38) return { label: 'Rising', color: '#38BDF8' }
-  return { label: 'Micro', color: '#34D399' }
+  if (a.deal_tier && a.deal_tier in TIER_COLOR) {
+    const label = a.deal_tier as Exclude<Tier, 'All'>
+    return { label, color: a.tier_color || TIER_COLOR[label] }
+  }
+  const score = a.marketability_score
+  if (typeof score === 'number') {
+    if (score >= 80) return { label: 'Elite', color: TIER_COLOR.Elite }
+    if (score >= 65) return { label: 'Pro', color: TIER_COLOR.Pro }
+    if (score >= 45) return { label: 'Rising', color: TIER_COLOR.Rising }
+    return { label: 'Micro', color: TIER_COLOR.Micro }
+  }
+  return { label: 'Micro', color: TIER_COLOR.Micro }
 }
 
 function AthleteRowCard({ athlete, onClick, index, shortlisted, onShortlist }: {
