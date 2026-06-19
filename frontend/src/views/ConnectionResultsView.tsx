@@ -186,11 +186,11 @@ function TopMatchCard({
       {a.thumbnail && (
         <div className="w-full h-44 sm:h-56 overflow-hidden relative">
           <img src={a.thumbnail} alt={a.name} className="w-full h-full object-cover object-top" />
-          <div className="absolute inset-0" style={{ background: `linear-gradient(to bottom, ${tier}10 0%, rgba(13,13,43,0.97) 100%)` }} />
+          <div className="absolute inset-0" style={{ background: `linear-gradient(to bottom, ${tier}10 0%, var(--bg-card) 100%)` }} />
         </div>
       )}
 
-      <div className="p-8" style={{ background: !a.thumbnail ? `linear-gradient(135deg, ${tier}18 0%, rgba(13,13,43,0.98) 100%)` : 'rgba(13,13,43,0.98)' }}>
+      <div className="p-8" style={{ background: !a.thumbnail ? `linear-gradient(135deg, ${tier}18 0%, var(--bg-card) 100%)` : 'var(--bg-card)' }}>
         <div className="flex items-start justify-between gap-4 mb-4 flex-wrap">
           <div className="flex-1 min-w-0">
             <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: tier }}>

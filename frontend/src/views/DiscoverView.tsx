@@ -65,18 +65,25 @@ export default function DiscoverView({ follows, onViewProfile, games }: Props) {
     return () => { cancelled = true }
   }, [games])
 
-  // Fetch when filters change (refetch from page 0)
-  useEffect(() => {
-    let cancelled = false
-    const q: AthleteQuery = { games, limit: PAGE_SIZE, offset: 0 }
+  // Build the shared query for the current filters (label filter runs
+  // server-side across the WHOLE dataset, so every archetype is populated and
+  // "Load more" returns a full page of matches).
+  const buildQuery = useCallback((off: number): AthleteQuery => {
+    const q: AthleteQuery = { games, limit: PAGE_SIZE, offset: off }
     if (search.trim()) q.search = search.trim()
     if (sport !== 'All') q.sport = sport
     if (country !== 'All') q.country = country
     if (minStars > 0) q.min_stars = minStars
     if (medalistOnly) q.medalist_only = true
+    if (labelFilter !== 'all') q.label = labelFilter
+    return q
+  }, [games, search, sport, country, minStars, medalistOnly, labelFilter])
 
+  // Fetch when filters change (refetch from page 0)
+  useEffect(() => {
+    let cancelled = false
     setLoading(true)
-    api.getAthletes(q)
+    api.getAthletes(buildQuery(0))
       .then(page => {
         if (cancelled) return
         setTotal(page.total)
@@ -87,27 +94,21 @@ export default function DiscoverView({ follows, onViewProfile, games }: Props) {
       .finally(() => { if (!cancelled) setLoading(false) })
 
     return () => { cancelled = true }
-  }, [games, search, sport, country, minStars, medalistOnly])
+  }, [buildQuery])
 
   // Load-more pagination
   const loadMore = useCallback(async () => {
     setLoading(true)
-    const q: AthleteQuery = { games, limit: PAGE_SIZE, offset }
-    if (search.trim()) q.search = search.trim()
-    if (sport !== 'All') q.sport = sport
-    if (country !== 'All') q.country = country
-    if (minStars > 0) q.min_stars = minStars
-    if (medalistOnly) q.medalist_only = true
     try {
-      const page = await api.getAthletes(q)
+      const page = await api.getAthletes(buildQuery(offset))
       setItems(prev => [...prev, ...page.items])
       setOffset(o => o + page.items.length)
       setTotal(page.total)
     } catch {} finally { setLoading(false) }
-  }, [games, search, sport, country, minStars, medalistOnly, offset])
+  }, [buildQuery, offset])
 
   const canLoadMore = items.length < total
-  const visible = labelFilter === 'all' ? items : items.filter(a => labelFor(a).key === labelFilter)
+  const visible = items
 
   return (
     <motion.div
@@ -239,7 +240,7 @@ export default function DiscoverView({ follows, onViewProfile, games }: Props) {
       {/* Results count */}
       <div className="mb-4 text-xs font-semibold uppercase tracking-widest text-white/30">
         Showing {visible.length.toLocaleString()} of {total.toLocaleString()}
-        {labelFilter !== 'all' && <span className="text-white/20 normal-case tracking-normal"> · filtered to {ATHLETE_LABELS.find(l => l.key === labelFilter)?.label} on this page</span>}
+        {labelFilter !== 'all' && <span className="text-white/20 normal-case tracking-normal"> · {ATHLETE_LABELS.find(l => l.key === labelFilter)?.label} across all athletes</span>}
       </div>
 
       {/* Grid */}
@@ -247,7 +248,7 @@ export default function DiscoverView({ follows, onViewProfile, games }: Props) {
         <div className="text-center py-20" style={{ color: 'var(--text-faint)' }}>
           <Search size={44} className="mb-4 mx-auto" style={{ opacity: 0.35 }} />
           <p>No athletes match your filters.</p>
-          {labelFilter !== 'all' && <p className="text-sm mt-1" style={{ opacity: 0.6 }}>Try "Load more" or clear the type filter.</p>}
+          {labelFilter !== 'all' && <p className="text-sm mt-1" style={{ opacity: 0.6 }}>Try clearing other filters (sport, country, stars) — the type filter itself spans all athletes.</p>}
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -358,13 +359,15 @@ function CompactAthleteCard({ athlete, isFollowed, onToggleFollow, onViewProfile
         )}
       </div>
 
-      {/* Top image area — same height whether photo or flag placeholder */}
-      <div className="w-full h-40 overflow-hidden relative flex-shrink-0">
+      {/* Top image area — taller so the full face is visible; only a thin
+          fade at the very bottom blends the photo into the card. */}
+      <div className="w-full h-52 overflow-hidden relative flex-shrink-0">
         {athlete.thumbnail ? (
           <>
             <img src={athlete.thumbnail} alt={athlete.name}
-              className="w-full h-full object-cover object-top" loading="lazy" />
-            <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 40%, var(--bg-card) 100%)' }} />
+              className="w-full h-full object-cover"
+              style={{ objectPosition: 'center 22%' }} loading="lazy" />
+            <div className="absolute inset-x-0 bottom-0 h-12" style={{ background: 'linear-gradient(to bottom, transparent 0%, var(--bg-card) 100%)' }} />
           </>
         ) : (
           <div className="w-full h-full flex items-end justify-end p-2"

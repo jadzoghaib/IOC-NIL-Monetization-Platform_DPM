@@ -61,7 +61,7 @@ export default function ResultsView({ quiz, follows, onViewProfile }: Props) {
       {/* Archetype reveal */}
       <div
         className="relative rounded-3xl p-8 mb-8 overflow-hidden"
-        style={{ background: `linear-gradient(135deg, ${color}18 0%, rgba(13,13,43,0.98) 100%)`, border: `1px solid ${color}35` }}
+        style={{ background: `linear-gradient(135deg, ${color}18 0%, var(--bg-card) 100%)`, border: `1px solid ${color}35` }}
       >
         <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: color }} />
 
@@ -148,7 +148,7 @@ export default function ResultsView({ quiz, follows, onViewProfile }: Props) {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.4 }}
             className="rounded-2xl p-6 mb-4 cursor-pointer hover:opacity-90 transition-opacity"
-            style={{ background: `linear-gradient(135deg, ${color}14 0%, rgba(13,13,43,0.98) 100%)`, border: `1px solid ${color}30` }}
+            style={{ background: `linear-gradient(135deg, ${color}14 0%, var(--bg-card) 100%)`, border: `1px solid ${color}30` }}
             onClick={() => onViewProfile(matchedAthlete.id)}
           >
             <div className="flex items-start justify-between gap-4 mb-4">

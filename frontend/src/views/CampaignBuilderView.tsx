@@ -300,7 +300,7 @@ export default function CampaignBuilderView({ games, brand, defaultCategory, onS
             className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-4"
           >
             <div className="max-w-6xl mx-auto rounded-2xl p-4 flex items-center gap-4 backdrop-blur-xl"
-              style={{ background: 'rgba(20,16,40,0.92)', border: `1px solid ${ACCENT}40`, boxShadow: '0 8px 40px rgba(0,0,0,0.5)' }}>
+              style={{ background: 'var(--glass)', border: `1px solid ${ACCENT}40`, boxShadow: 'var(--shadow-lg)' }}>
               <div className="flex-1">
                 <div className="text-white font-bold text-sm">{selectedRows.length} athlete{selectedRows.length > 1 ? 's' : ''} selected</div>
                 <div className="text-white/40 text-xs">Total offer value ≈ {money(total)} · {DEAL_TYPE_META[dealType].label}</div>
@@ -338,7 +338,7 @@ export default function CampaignBuilderView({ games, brand, defaultCategory, onS
               initial={{ opacity: 0, scale: 0.95, y: 8 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               className="w-full max-w-sm rounded-2xl overflow-hidden"
-              style={{ background: '#141028', border: `1px solid ${ACCENT}35`, boxShadow: '0 24px 64px rgba(0,0,0,0.7)' }}
+              style={{ background: 'var(--bg-card)', border: `1px solid ${ACCENT}35`, boxShadow: 'var(--shadow-lg)' }}
               onClick={e => e.stopPropagation()}
             >
               {/* Header */}

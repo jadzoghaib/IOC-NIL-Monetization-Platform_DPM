@@ -77,7 +77,7 @@ export default function EntryChoiceView({ games, onTakeQuiz, onBrowse, onBack }:
           onClick={onTakeQuiz}
           className="relative rounded-3xl p-8 text-left overflow-hidden group"
           style={{
-            background: 'linear-gradient(135deg, rgba(255,215,0,0.13) 0%, rgba(13,13,43,0.98) 100%)',
+            background: 'linear-gradient(135deg, rgba(255,215,0,0.13) 0%, var(--bg-card) 100%)',
             border: '1px solid rgba(255,215,0,0.3)',
           }}
         >
@@ -111,7 +111,7 @@ export default function EntryChoiceView({ games, onTakeQuiz, onBrowse, onBack }:
           onClick={onBrowse}
           className="relative rounded-3xl p-8 text-left overflow-hidden group"
           style={{
-            background: 'linear-gradient(135deg, rgba(78,205,196,0.13) 0%, rgba(13,13,43,0.98) 100%)',
+            background: 'linear-gradient(135deg, rgba(78,205,196,0.13) 0%, var(--bg-card) 100%)',
             border: '1px solid rgba(78,205,196,0.3)',
           }}
         >

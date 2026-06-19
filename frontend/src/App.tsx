@@ -4,7 +4,6 @@ import Home from './pages/Home'
 import FanEngagement from './pages/FanEngagement'
 import AthleteMode from './pages/AthleteMode'
 import BusinessMode from './pages/BusinessMode'
-import ModeSwitcher from './components/ModeSwitcher'
 
 export default function App() {
   return (
@@ -18,7 +17,6 @@ export default function App() {
           <Route path="*"          element={<Navigate to="/" replace />} />
         </Routes>
       </AnimatePresence>
-      <ModeSwitcher />
     </BrowserRouter>
   )
 }

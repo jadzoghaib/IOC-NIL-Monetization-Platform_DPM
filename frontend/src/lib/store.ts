@@ -170,7 +170,7 @@ export function uid(prefix = 'id'): string {
 }
 
 // ── React binding ─────────────────────────────────────────────────────────────
-function subscribe(cb: () => void) {
+function subscribeStore(cb: () => void) {
   listeners.add(cb)
   return () => listeners.delete(cb)
 }
@@ -179,7 +179,7 @@ function getSnapshot() {
 }
 /** Re-render the calling component whenever any store slice changes. */
 export function useStoreVersion(): number {
-  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
+  return useSyncExternalStore(subscribeStore, getSnapshot, getSnapshot)
 }
 
 // ── Posts ─────────────────────────────────────────────────────────────────────
@@ -357,6 +357,78 @@ export function setPricing(athleteId: string, patch: Partial<AthletePricing>) {
   const all = readObj<Record<string, AthletePricing>>('mmo:pricing', {})
   all[athleteId] = { ...PRICING_DEFAULT, ...(all[athleteId] ?? {}), ...patch }
   writeObj('mmo:pricing', all)
+}
+
+// ── Subscription tiers + paywalled content (OnlyFans-style) ───────────────────
+// Athletes define their own content subscription tiers. Fans must hold a
+// subscription to see an athlete's posts ("behind the scenes"); until then the
+// posts are shown locked. Demo subscriptions are instant + per-browser.
+export interface SubscriptionTier {
+  id: string
+  name: string
+  price: number       // USD / month
+  perks: string[]
+}
+
+const TIERS_KEY = 'mmo:subtiers'        // Record<athleteId, SubscriptionTier[]>
+const SUBS_KEY  = 'mmo:subscriptions'   // Record<athleteId, { tierId: string; since: string }>
+
+/** Default two-tier ladder seeded from the athlete's base subscription price. */
+function defaultTiers(athleteId: string): SubscriptionTier[] {
+  const base = getPricing(athleteId).subscription
+  return [
+    {
+      id: 'tier_inner', name: 'Inner Circle', price: base,
+      perks: ['All behind-the-scenes posts', 'Subscriber-only photos & videos', 'Monthly fan Q&A'],
+    },
+    {
+      id: 'tier_vip', name: 'VIP', price: Math.max(Math.round(base * 3), base + 10),
+      perks: ['Everything in Inner Circle', 'Early access to new drops', 'Priority replies in chat'],
+    },
+  ]
+}
+
+export function listTiers(athleteId: string): SubscriptionTier[] {
+  const all = readObj<Record<string, SubscriptionTier[]>>(TIERS_KEY, {})
+  const t = all[athleteId]
+  return t && t.length ? t : defaultTiers(athleteId)
+}
+function writeTiers(athleteId: string, tiers: SubscriptionTier[]) {
+  const all = readObj<Record<string, SubscriptionTier[]>>(TIERS_KEY, {})
+  all[athleteId] = tiers
+  writeObj(TIERS_KEY, all)
+}
+export function addTier(athleteId: string): SubscriptionTier {
+  const t: SubscriptionTier = { id: uid('tier'), name: 'New tier', price: 19, perks: ['Subscriber-only posts'] }
+  writeTiers(athleteId, [...listTiers(athleteId), t])
+  return t
+}
+export function updateTier(athleteId: string, id: string, patch: Partial<SubscriptionTier>) {
+  writeTiers(athleteId, listTiers(athleteId).map(t => (t.id === id ? { ...t, ...patch } : t)))
+}
+export function deleteTier(athleteId: string, id: string) {
+  const remaining = listTiers(athleteId).filter(t => t.id !== id)
+  writeTiers(athleteId, remaining.length ? remaining : defaultTiers(athleteId))
+}
+
+export function subscribedTierId(athleteId: string): string | null {
+  const all = readObj<Record<string, { tierId: string; since: string }>>(SUBS_KEY, {})
+  return all[athleteId]?.tierId ?? null
+}
+export function isSubscribed(athleteId: string): boolean {
+  return subscribedTierId(athleteId) !== null
+}
+export function subscribe(athleteId: string, tierId: string) {
+  const all = readObj<Record<string, { tierId: string; since: string }>>(SUBS_KEY, {})
+  all[athleteId] = { tierId, since: new Date().toISOString() }
+  writeObj(SUBS_KEY, all)
+  trackEvent('subscribed', { athleteId, tierId })
+}
+export function unsubscribe(athleteId: string) {
+  const all = readObj<Record<string, { tierId: string; since: string }>>(SUBS_KEY, {})
+  delete all[athleteId]
+  writeObj(SUBS_KEY, all)
+  trackEvent('unsubscribed', { athleteId })
 }
 
 // ── Deterministic demo seeding ────────────────────────────────────────────────

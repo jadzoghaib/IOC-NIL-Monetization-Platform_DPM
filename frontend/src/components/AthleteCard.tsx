@@ -21,7 +21,7 @@ export default function AthleteCard({ athlete, isFollowed, onToggleFollow, onVie
       transition={{ duration: 0.4, delay: index * 0.06, ease: 'easeOut' }}
       whileHover={{ y: -4, transition: { duration: 0.2 } }}
       className="group relative rounded-2xl overflow-hidden cursor-pointer"
-      style={{ background: `linear-gradient(135deg, ${color}14 0%, rgba(13,13,43,0.98) 60%)`, border: `1px solid ${color}30` }}
+      style={{ background: `linear-gradient(135deg, ${color}14 0%, var(--bg-card) 60%)`, border: `1px solid ${color}30` }}
     >
       {/* Color accent bar */}
       <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: color }} />

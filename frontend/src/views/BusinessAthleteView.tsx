@@ -66,7 +66,7 @@ function ScoreRing({ score, color, size = 96 }: { score: number; color: string; 
   const dash = circ * score / 100
   return (
     <svg width={size} height={size} className="rotate-[-90deg]">
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={7} />
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--border-2)" strokeWidth={7} />
       <motion.circle
         cx={size/2} cy={size/2} r={r} fill="none"
         stroke={color} strokeWidth={7}
@@ -79,7 +79,7 @@ function ScoreRing({ score, color, size = 96 }: { score: number; color: string; 
       <text
         x={size/2} y={size/2 + 1}
         textAnchor="middle" dominantBaseline="middle"
-        fill="white" fontSize={size * 0.22} fontWeight="700"
+        fill="var(--text)" fontSize={size * 0.22} fontWeight="700"
         transform={`rotate(90, ${size/2}, ${size/2})`}
       >
         {score}
@@ -158,7 +158,7 @@ export default function BusinessAthleteView({ athleteId, onBack }: Props) {
       <div
         className="relative rounded-3xl overflow-hidden mb-6 p-6 flex flex-col sm:flex-row items-start sm:items-center gap-6"
         style={{
-          background: `linear-gradient(135deg, rgba(17,17,51,0.98) 0%, ${tc}18 100%)`,
+          background: `linear-gradient(135deg, var(--bg-card) 0%, ${tc}18 100%)`,
           border: `1px solid ${tc}35`,
         }}
       >
@@ -455,7 +455,7 @@ function OfferModal({
         initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 40, opacity: 0 }}
         onClick={e => e.stopPropagation()}
         className="w-full max-w-md rounded-3xl p-6"
-        style={{ background: '#0D0D2B', border: `1px solid ${tierColor}40` }}
+        style={{ background: 'var(--bg-card)', border: `1px solid ${tierColor}40` }}
       >
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-display text-2xl text-white tracking-wide">SEND OFFER</h3>

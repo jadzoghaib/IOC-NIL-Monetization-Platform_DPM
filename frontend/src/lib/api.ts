@@ -56,6 +56,8 @@ export interface AthleteRecord {
   deal_tier?: string
   tier_color?: string
   available_categories?: string[]
+  // Fan archetype key computed server-side (services/athlete_labels.py)
+  label?: string
 }
 
 export interface AthletePage {
@@ -71,6 +73,7 @@ export interface AthleteQuery {
   country?: string
   min_stars?: number
   medalist_only?: boolean
+  label?: string
   search?: string
   limit?: number
   offset?: number

@@ -3,6 +3,7 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException, Query
 
 from services.business_metrics import compute_business_metrics
+from services.athlete_labels import label_for
 
 router = APIRouter(prefix="/api/athletes", tags=["athletes"])
 
@@ -118,6 +119,7 @@ def list_athletes(
     country: str | None = None,
     min_stars: float | None = None,
     medalist_only: bool = False,
+    label: str | None = Query(None, description="Filter by fan archetype key, e.g. 'grinder' (see services/athlete_labels.py)"),
     search: str | None = Query(None, description="Substring match on name/country/sport"),
     limit: int = Query(100, ge=1, le=1000),
     offset: int = Query(0, ge=0),
@@ -135,6 +137,10 @@ def list_athletes(
         data = [a for a in data if a.get("stars", 0) >= min_stars]
     if medalist_only:
         data = [a for a in data if a.get("is_medalist")]
+    if label:
+        # Filter across the WHOLE dataset (before pagination) so every archetype
+        # is populated and "Load more" returns a full page of matches.
+        data = [a for a in data if label_for(a) == label]
     if search:
         q = search.lower()
         data = [a for a in data
@@ -154,6 +160,7 @@ def list_athletes(
         bm = compute_business_metrics(a)
         items.append({
             **a,
+            "label":                label_for(a),
             "marketability_score":  bm["marketability_score"],
             "deal_tier":            bm["deal_tier"],
             "tier_color":           bm["tier_color"],

@@ -1,8 +1,19 @@
 /**
  * athleteLabel.ts — fan-connection archetypes for every athlete.
- * Each label answers "why would a fan feel something for this person?"
- * rather than "what have they won?" — the goal is personal resonance,
- * not a performance leaderboard.
+ *
+ * Each label answers "why would a fan feel something for this person?" rather
+ * than "what have they won?". Every athlete gets exactly ONE label: the first
+ * rule that matches, top to bottom (priority = a strong, rare signal beats a
+ * common one).
+ *
+ * This MIRRORS backend/services/athlete_labels.py — the backend is the source of
+ * truth so the Discover filter can run across the whole dataset. Prefer the
+ * `label` key returned by the API (labelByKey); fall back to labelFor() only
+ * when a record has no server-computed label (e.g. legacy athletes).
+ *
+ * Every signal is derived from the Wikipedia/Wikidata ingest:
+ *   medals, flagbearer status, number of Games, pageviews (buzz), star rating,
+ *   and country — so each classification is grounded in real, citable data.
  */
 export interface AthleteLabel {
   key: string
@@ -21,6 +32,7 @@ interface Input {
   is_flagbearer_open?: boolean
   is_flagbearer_close?: boolean
   country?: string
+  label?: string   // server-computed key (preferred when present)
 }
 
 export const ATHLETE_LABELS: AthleteLabel[] = [
@@ -29,64 +41,67 @@ export const ATHLETE_LABELS: AthleteLabel[] = [
     label: 'The Legend',
     emoji: '🏛️',
     color: '#A78BFA',
-    blurb: "A name written into Olympic history. You're watching greatness.",
+    blurb: 'Two or more Olympic golds — a name written into the history of the Games.',
   },
   {
     key: 'champion',
     label: 'The Champion',
     emoji: '👑',
     color: '#FFD700',
-    blurb: "They stood where everyone wants to stand — on top of the world.",
+    blurb: 'An Olympic gold medallist — they stood on top of the world.',
   },
   {
     key: 'hometown',
     label: 'Hometown Hero',
     emoji: '🚩',
     color: '#E63946',
-    blurb: "Their whole country was watching. They carried every flag.",
+    blurb: "Chosen to carry their nation's flag — a whole country walked in behind them.",
   },
   {
     key: 'fan_favorite',
     label: 'Fan Favorite',
     emoji: '⭐',
     color: '#F59E0B',
-    blurb: "Not chosen by the scoreboard — chosen by the fans. That says more.",
-  },
-  {
-    key: 'one_to_watch',
-    label: 'One to Watch',
-    emoji: '👀',
-    color: '#38BDF8',
-    blurb: "Everyone's about to know their name. You know it first.",
+    blurb: 'An Olympic medallist (silver or bronze) — on the podium, and adored for it.',
   },
   {
     key: 'grinder',
     label: 'The Grinder',
     emoji: '💪',
     color: '#457B9D',
-    blurb: "Multiple Olympics. Still going. The sport can't shake them.",
+    blurb: "Three or more Olympics and still going — the sport just can't shake them.",
+  },
+  {
+    key: 'one_to_watch',
+    label: 'One to Watch',
+    emoji: '👀',
+    color: '#38BDF8',
+    blurb: "No medal yet, but huge buzz heading in — the breakout you'll want to say you saw first.",
   },
   {
     key: 'underdog',
     label: 'The Underdog',
     emoji: '🔥',
     color: '#34D399',
-    blurb: "Everyone counted them out. Don't.",
+    blurb: 'A long shot with a real footing — the experience or pipeline to pull off an upset.',
   },
   {
     key: 'trailblazer',
     label: 'The Trailblazer',
     emoji: '🧭',
     color: '#FB923C',
-    blurb: "The first. The only. Making history just by showing up.",
+    blurb: 'Representing where there’s no pipeline — making history just by being on the start line.',
   },
 ]
 
 const BY_KEY = Object.fromEntries(ATHLETE_LABELS.map(l => [l.key, l]))
 
-// Strong Olympic nations — athletes from outside this set who lack real
-// competitive signal are Trailblazers (representing where there's no pipeline)
-// rather than Underdogs (a dark horse with a genuine shot).
+/** Resolve a server-computed label key (from the API) to its display metadata. */
+export function labelByKey(key?: string): AthleteLabel | undefined {
+  return key ? BY_KEY[key] : undefined
+}
+
+// Strong Olympic nations — mirror of POWERHOUSE in athlete_labels.py.
 const POWERHOUSE = new Set([
   'United States', 'China', 'United Kingdom', 'Great Britain', 'France', 'Germany', 'Japan',
   'Australia', 'Italy', 'Netherlands', 'Canada', 'South Korea', 'Brazil', 'Spain', 'Hungary',
@@ -94,7 +109,14 @@ const POWERHOUSE = new Set([
   'Finland', 'Denmark', 'Belgium', 'Croatia', 'Jamaica', 'Kenya', 'Ethiopia', 'Cuba', 'Ukraine',
 ])
 
+/**
+ * Compute the label for an athlete. Prefers the server-computed `label` key when
+ * present; otherwise derives it locally with the same rules as the backend.
+ */
 export function labelFor(a: Input): AthleteLabel {
+  const fromServer = labelByKey(a.label)
+  if (fromServer) return fromServer
+
   const gold  = a.medal_totals?.gold  ?? 0
   const totalMedals = gold + (a.medal_totals?.silver ?? 0) + (a.medal_totals?.bronze ?? 0)
   const games = a.games?.length ?? 1
@@ -103,30 +125,15 @@ export function labelFor(a: Input): AthleteLabel {
   const pv    = a.pageviews_60d ?? 0
   const powerhouse = a.country ? POWERHOUSE.has(a.country) : false
 
-  // ── Performance tier (rare, high-status) ──────────────────────────────────
-  if (gold >= 2) return BY_KEY.legend    // multi-gold royalty
-  if (gold === 1) return BY_KEY.champion  // peak of the sport
-
-  // ── National identity ──────────────────────────────────────────────────────
+  if (gold >= 2) return BY_KEY.legend
+  if (gold === 1) return BY_KEY.champion
   if (flag) return BY_KEY.hometown
-
-  // ── Fan-chosen ─────────────────────────────────────────────────────────────
-  // Silver/bronze athletes — the fans' heroes on the podium
   if (totalMedals > 0) return BY_KEY.fan_favorite
-
-  // ── Buzz / trajectory ─────────────────────────────────────────────────────
-  // High engagement even without medals — the crowd already picked them
-  if (stars >= 4 || pv >= 40000) return BY_KEY.one_to_watch
-
-  // ── Perseverance ──────────────────────────────────────────────────────────
-  // 3+ Olympic Games, no gold — keeps coming back, season after season
   if (games >= 3) return BY_KEY.grinder
+  if ((stars >= 4 || pv >= 40000) && games <= 2) return BY_KEY.one_to_watch
 
-  // ── Competitive shot ──────────────────────────────────────────────────────
-  // Has the infrastructure/experience/buzz to pull an upset
   const hasShot = (powerhouse && stars >= 3) || (games >= 2 && stars >= 2) || (powerhouse && games >= 2)
   if (hasShot) return BY_KEY.underdog
 
-  // ── Pioneer ───────────────────────────────────────────────────────────────
   return BY_KEY.trailblazer
 }

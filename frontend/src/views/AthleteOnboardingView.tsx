@@ -290,7 +290,7 @@ function StepIdentity({ profile, update }: Pick<Props, 'profile' | 'update'>) {
           <motion.div
             initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
             className="rounded-2xl overflow-hidden mb-4"
-            style={{ border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(13,13,43,0.98)' }}
+            style={{ border: '1px solid rgba(255,255,255,0.08)', background: 'var(--bg-card)' }}
           >
             {results.map((a, i) => (
               <motion.button

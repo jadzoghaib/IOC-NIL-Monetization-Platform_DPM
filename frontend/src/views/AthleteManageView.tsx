@@ -8,8 +8,9 @@ import {
   listAppearances, addAppearance, updateAppearance, deleteAppearance,
   listOffers, setOfferStatus, addMessage, threadCount,
   getPricing, setPricing,
+  listTiers, addTier, updateTier, deleteTier,
   DEAL_TYPE_META, POST_KINDS, AVAILABILITY_ACTIVITIES,
-  type PostKind, type AvailabilityActivity, type Offer, type Course, type AthletePricing, type Appearance,
+  type PostKind, type AvailabilityActivity, type Offer, type Course, type AthletePricing, type Appearance, type SubscriptionTier,
 } from '../lib/store'
 import { ensureSeeded } from '../lib/seed'
 import { EditableText, EditableNumber } from '../components/Editable'
@@ -60,7 +61,7 @@ function ContentTab({ athleteId }: { athleteId: string }) {
   return (
     <div className="space-y-5">
       {/* Composer — styled like a fan card */}
-      <div className="rounded-2xl overflow-hidden border" style={{ borderColor: 'rgba(255,215,0,0.25)', background: 'linear-gradient(145deg, rgba(255,215,0,0.05) 0%, rgba(13,13,43,0.97) 100%)' }}>
+      <div className="rounded-2xl overflow-hidden border" style={{ borderColor: 'rgba(255,215,0,0.25)', background: 'linear-gradient(145deg, rgba(255,215,0,0.06) 0%, var(--bg-card) 70%)' }}>
         <div className="h-0.5 w-full" style={{ background: GOLD }} />
         <div className="p-4">
           <div className="flex gap-2 mb-3">
@@ -96,7 +97,7 @@ function ContentTab({ athleteId }: { athleteId: string }) {
         </div>
       </div>
 
-      <p className="text-[11px] text-white/30 px-1">💡 Tip: click any caption or like-count below to edit it in place.</p>
+      <p className="text-[11px] text-white/30 px-1">🔒 Posts are subscriber-only — fans unlock them by subscribing to a tier you set in <b className="text-white/50">Rates &amp; Dates</b>. 💡 Click any caption or like-count to edit it in place.</p>
 
       {posts.length === 0 ? (
         <div className="text-center text-white/25 text-sm py-10">No posts yet — publish your first above. ☝️</div>
@@ -304,6 +305,57 @@ function AppearanceRow({ ap }: { ap: Appearance }) {
   )
 }
 
+// ── Subscription tiers editor (athlete-defined content paywall) ───────────────
+function SubscriptionTiersEditor({ athleteId }: { athleteId: string }) {
+  useStoreVersion()
+  const tiers = listTiers(athleteId)
+  return (
+    <div className="rounded-2xl border p-5" style={{ borderColor: 'rgba(255,215,0,0.2)', background: 'rgba(255,215,0,0.03)' }}>
+      <div className="flex items-center justify-between mb-1">
+        <h3 className="font-display text-xl text-white">⭐ CONTENT SUBSCRIPTIONS</h3>
+        <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => addTier(athleteId)}
+          className="px-4 py-2 rounded-xl text-sm font-bold" style={{ background: 'rgba(255,215,0,0.12)', color: GOLD, border: '1px solid rgba(255,215,0,0.3)' }}>
+          ＋ Add tier
+        </motion.button>
+      </div>
+      <p className="text-xs text-white/35 mb-4">Fans subscribe to unlock your posts (the <b className="text-white/60">Content</b> tab). Set your tiers — click any field to edit.</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {tiers.map(t => <TierCard key={t.id} athleteId={athleteId} tier={t} />)}
+      </div>
+    </div>
+  )
+}
+
+function TierCard({ athleteId, tier }: { athleteId: string; tier: SubscriptionTier }) {
+  const setPerk = (i: number, v: string) => updateTier(athleteId, tier.id, { perks: tier.perks.map((p, idx) => (idx === i ? v : p)) })
+  const addPerk = () => updateTier(athleteId, tier.id, { perks: [...tier.perks, 'New perk'] })
+  const removePerk = (i: number) => updateTier(athleteId, tier.id, { perks: tier.perks.filter((_, idx) => idx !== i) })
+  return (
+    <div className="rounded-2xl border p-4" style={cardStyle}>
+      <div className="flex items-start justify-between gap-2 mb-2.5">
+        <div className="font-semibold text-white text-sm flex-1 min-w-0">
+          <EditableText value={tier.name} onSave={v => updateTier(athleteId, tier.id, { name: v })} placeholder="Tier name" />
+        </div>
+        <div className="text-gold font-bold text-sm flex-shrink-0">
+          <EditableNumber value={tier.price} onSave={v => updateTier(athleteId, tier.id, { price: v })} prefix="$" />
+          <span className="text-white/30 font-normal text-xs">/mo</span>
+        </div>
+        <button onClick={() => deleteTier(athleteId, tier.id)} className="text-white/20 hover:text-red-400 text-xs flex-shrink-0">✕</button>
+      </div>
+      <div className="space-y-1">
+        {tier.perks.map((p, i) => (
+          <div key={i} className="flex items-center gap-1.5 text-xs group">
+            <span className="text-gold flex-shrink-0">✓</span>
+            <span className="text-white/55 flex-1 min-w-0"><EditableText value={p} onSave={v => setPerk(i, v)} /></span>
+            <button onClick={() => removePerk(i)} className="text-white/15 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">✕</button>
+          </div>
+        ))}
+      </div>
+      <button onClick={addPerk} className="text-gold/60 hover:text-gold text-xs mt-2">+ Add perk</button>
+    </div>
+  )
+}
+
 function AvailabilityTab({ athleteId }: { athleteId: string }) {
   useStoreVersion()
   const slots = listSlots(athleteId)
@@ -317,18 +369,8 @@ function AvailabilityTab({ athleteId }: { athleteId: string }) {
 
   return (
     <div className="space-y-6">
-      {/* Inner Circle subscription */}
-      <div className="rounded-2xl border p-5" style={{ borderColor: 'rgba(255,215,0,0.2)', background: 'rgba(255,215,0,0.03)' }}>
-        <h3 className="font-display text-xl text-white mb-1">⭐ INNER CIRCLE</h3>
-        <p className="text-xs text-white/35 mb-3">Your monthly fan membership — click the price to change it.</p>
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-white/60">Monthly subscription</span>
-          <span className="text-gold font-bold">
-            <EditableNumber value={pricing.subscription} onSave={v => setPricing(athleteId, { subscription: v })} format={money} prefix="" />
-            <span className="text-white/30 font-normal text-xs ml-1">/ mo</span>
-          </span>
-        </div>
-      </div>
+      {/* Content subscription tiers */}
+      <SubscriptionTiersEditor athleteId={athleteId} />
 
       {/* Appearances & bookings */}
       <div>
@@ -522,7 +564,7 @@ export default function AthleteManageView({ athleteId, onBack }: Props) {
 
       {/* Identity header — fan-mode hero style */}
       <div className="relative rounded-3xl p-6 mb-6 overflow-hidden"
-        style={{ background: `linear-gradient(135deg, ${GOLD}18 0%, rgba(13,13,43,0.98) 100%)`, border: `1px solid ${GOLD}33` }}>
+        style={{ background: `linear-gradient(135deg, ${GOLD}18 0%, var(--bg-card) 100%)`, border: `1px solid ${GOLD}33` }}>
         <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: GOLD }} />
         <div className="flex items-center gap-5">
           <div className="w-20 h-20 rounded-2xl overflow-hidden bg-white/[0.05] flex-shrink-0 flex items-center justify-center text-3xl" style={{ border: `2px solid ${GOLD}40` }}>

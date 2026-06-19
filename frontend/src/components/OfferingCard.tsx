@@ -24,7 +24,7 @@ export function PortfolioOfferingCard({ offering, index = 0 }: PortfolioCardProp
       style={{
         borderColor: isHero ? 'rgba(255,215,0,0.35)' : 'rgba(255,255,255,0.08)',
         background: isHero
-          ? 'linear-gradient(145deg, rgba(255,215,0,0.07) 0%, rgba(13,13,43,0.97) 100%)'
+          ? 'linear-gradient(145deg, rgba(255,215,0,0.07) 0%, var(--bg-card) 100%)'
           : 'rgba(255,255,255,0.02)',
       }}
     >
@@ -135,7 +135,7 @@ export default function OfferingCard({ offering, athleteName, index = 0 }: Legac
       className="rounded-2xl overflow-hidden border"
       style={{
         background: offering.sponsor
-          ? 'linear-gradient(135deg, rgba(255,215,0,0.06) 0%, rgba(13,13,43,0.98) 100%)'
+          ? 'linear-gradient(135deg, rgba(255,215,0,0.06) 0%, var(--bg-card) 100%)'
           : 'rgba(255,255,255,0.02)',
         borderColor: offering.sponsor ? 'rgba(255,215,0,0.3)' : 'rgba(255,255,255,0.08)',
       }}

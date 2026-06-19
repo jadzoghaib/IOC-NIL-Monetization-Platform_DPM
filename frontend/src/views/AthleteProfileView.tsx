@@ -16,7 +16,8 @@ import { sportPictogramUrl, flagImageUrl } from '../lib/sportIcons'
 import {
   useStoreVersion, listSlots, getPricing,
   listCourses, isCourseUnlocked, unlockCourse, listAppearances,
-  type Course,
+  listPosts, listTiers, isSubscribed, subscribe, unsubscribe,
+  type Course, type AthletePost, type SubscriptionTier,
 } from '../lib/store'
 import { ensureSeeded } from '../lib/seed'
 import { labelFor } from '../lib/athleteLabel'
@@ -189,7 +190,7 @@ export default function AthleteProfileView({ athleteId, follows, onBack }: Props
       <div
         className="relative rounded-3xl p-8 mb-8 overflow-hidden"
         style={{
-          background: `linear-gradient(135deg, ${color}20 0%, rgba(13,13,43,0.98) 100%)`,
+          background: `linear-gradient(135deg, ${color}20 0%, var(--bg-card) 100%)`,
           border: `1px solid ${color}35`,
         }}
       >
@@ -424,6 +425,9 @@ export default function AthleteProfileView({ athleteId, follows, onBack }: Props
         )}
       </div>
 
+      {/* Behind-the-scenes content — locked behind a subscription (OnlyFans-style) */}
+      <FanContentSection athleteId={athlete.id} athleteName={athlete.name} accent={color} />
+
       {/* Two-col: News + Offerings */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div>
@@ -597,7 +601,7 @@ function FanCourseModal({ course: c, athleteName, onClose }: { course: Course; a
         initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 40, opacity: 0 }}
         onClick={e => e.stopPropagation()}
         className="w-full max-w-md rounded-3xl p-6 max-h-[88vh] overflow-y-auto"
-        style={{ background: '#0D0D2B', border: `1px solid ${accent}40` }}>
+        style={{ background: 'var(--bg-card)', border: `1px solid ${accent}40` }}>
         <div className="flex items-start justify-between gap-3 mb-3">
           <div>
             <div className="text-[10px] font-black uppercase tracking-widest mb-1" style={{ color: accent }}>
@@ -670,6 +674,153 @@ function PaywallButton({ accent, label, onUnlock }: { accent: string; label: str
       style={{ background: `linear-gradient(135deg, ${accent}, ${accent}cc)`, color: '#0D0D2B' }}>
       {busy ? 'Processing…' : `${label} →`}
     </motion.button>
+  )
+}
+
+// ── Behind-the-scenes content (fan-facing, subscription paywall) ──────────────
+function FanContentSection({ athleteId, athleteName, accent }: { athleteId: string; athleteName: string; accent: string }) {
+  useStoreVersion()
+  const posts = listPosts(athleteId)
+  const subscribed = isSubscribed(athleteId)
+  const tiers = listTiers(athleteId)
+  const first = athleteName.split(' ')[0]
+  if (posts.length === 0) return null
+
+  return (
+    <div className="mb-8">
+      <div className="flex items-end justify-between mb-4 gap-3">
+        <div>
+          <h2 className="font-display text-2xl text-white">📸 BEHIND THE SCENES</h2>
+          <p className="text-xs text-white/35">
+            {posts.length} subscriber-only post{posts.length !== 1 ? 's' : ''} from {first}
+          </p>
+        </div>
+        {subscribed && (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold flex-shrink-0"
+            style={{ background: `${accent}1F`, color: accent, border: `1px solid ${accent}40` }}>
+            ✓ Subscribed
+          </span>
+        )}
+      </div>
+
+      {subscribed ? (
+        <div className="space-y-3">
+          {posts.map(p => <UnlockedPostCard key={p.id} post={p} />)}
+          <button onClick={() => unsubscribe(athleteId)}
+            className="text-xs text-white/30 hover:text-white/60 transition-colors">
+            Manage subscription · Cancel
+          </button>
+        </div>
+      ) : (
+        <>
+          {/* Locked teasers — fans can see that content exists, but not what it says */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+            {posts.slice(0, 3).map(p => <LockedPostCard key={p.id} post={p} accent={accent} />)}
+          </div>
+          <SubscribePanel athleteId={athleteId} first={first} tiers={tiers} accent={accent} count={posts.length} />
+        </>
+      )}
+    </div>
+  )
+}
+
+const POST_KIND_META: Record<AthletePost['kind'], { icon: string; label: string }> = {
+  photo: { icon: '🖼️', label: 'Photo' },
+  video: { icon: '🎬', label: 'Video' },
+  text:  { icon: '✍️', label: 'Post' },
+}
+
+function LockedPostCard({ post, accent }: { post: AthletePost; accent: string }) {
+  const meta = POST_KIND_META[post.kind]
+  return (
+    <div className="relative rounded-2xl overflow-hidden border aspect-[4/3]"
+      style={{ borderColor: `${accent}25`, background: `${accent}0A` }}>
+      {/* Blurred teaser of the real caption — present but unreadable */}
+      <div className="absolute inset-0 p-4 select-none" style={{ filter: 'blur(7px)', opacity: 0.45 }} aria-hidden>
+        <div className="text-white/80 text-sm leading-relaxed">{post.caption || 'Subscriber-only content'}</div>
+      </div>
+      {/* Lock overlay */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 text-center px-3"
+        style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.55))' }}>
+        <div className="text-2xl">🔒</div>
+        <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: accent }}>{meta.icon} {meta.label} · Locked</div>
+        <div className="text-[10px] text-white/50">Subscribers only</div>
+      </div>
+    </div>
+  )
+}
+
+function UnlockedPostCard({ post }: { post: AthletePost }) {
+  const relTime = (iso: string) => {
+    const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
+    if (m < 60) return `${Math.max(m, 1)}m ago`
+    const h = Math.floor(m / 60)
+    return h < 24 ? `${h}h ago` : `${Math.floor(h / 24)}d ago`
+  }
+  return (
+    <div className="rounded-2xl border p-4" style={{ background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.08)' }}>
+      {post.sponsoredBy && <div className="text-xs font-bold text-gold tracking-wider mb-1.5">✨ Sponsored · {post.sponsoredBy}</div>}
+      <div className="text-xs text-white/35 mb-2">{POST_KIND_META[post.kind].icon} {POST_KIND_META[post.kind].label} · {relTime(post.createdAt)}</div>
+      {post.caption && <p className="text-white/85 text-sm leading-relaxed mb-2 whitespace-pre-wrap">{post.caption}</p>}
+      {post.mediaUrl && post.kind === 'photo' && (
+        <img src={post.mediaUrl} alt="" className="rounded-xl max-h-72 w-full object-cover bg-white/[0.03] mb-2"
+          onError={e => ((e.target as HTMLImageElement).style.display = 'none')} />
+      )}
+      {post.mediaUrl && post.kind === 'video' && (
+        <a href={post.mediaUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-sm text-gold hover:opacity-80">▶ Watch video</a>
+      )}
+      <div className="text-white/35 text-xs mt-1">♥ {post.likes.toLocaleString()}</div>
+    </div>
+  )
+}
+
+function SubscribePanel({ athleteId, first, tiers, accent, count }: {
+  athleteId: string; first: string; tiers: SubscriptionTier[]; accent: string; count: number
+}) {
+  const [busy, setBusy] = useState<string | null>(null)
+  const go = (tierId: string) => { setBusy(tierId); setTimeout(() => subscribe(athleteId, tierId), 500) }
+  return (
+    <div className="rounded-2xl border p-5" style={{ borderColor: `${accent}30`, background: `${accent}0A` }}>
+      <div className="text-center mb-4">
+        <div className="text-2xl mb-1">🔓</div>
+        <h3 className="font-display text-xl text-white">SUBSCRIBE TO UNLOCK</h3>
+        <p className="text-xs text-white/45 mt-1">
+          Get all {count} of {first}'s behind-the-scenes posts, photos and videos. Cancel anytime.
+        </p>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {tiers.map((t, i) => {
+          const featured = i === 0
+          return (
+            <div key={t.id} className="rounded-2xl border p-4 flex flex-col"
+              style={{ borderColor: featured ? `${accent}50` : 'rgba(255,255,255,0.1)', background: featured ? `${accent}12` : 'rgba(255,255,255,0.02)' }}>
+              <div className="flex items-baseline justify-between mb-2">
+                <span className="text-white font-bold text-sm">{t.name}</span>
+                <span className="font-bold" style={{ color: accent }}>
+                  ${t.price}<span className="text-white/30 font-normal text-xs"> /mo</span>
+                </span>
+              </div>
+              <ul className="space-y-1 mb-4 flex-1">
+                {t.perks.map((p, j) => (
+                  <li key={j} className="text-xs text-white/55 flex items-start gap-1.5">
+                    <span style={{ color: accent }}>✓</span> {p}
+                  </li>
+                ))}
+              </ul>
+              <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                onClick={() => go(t.id)} disabled={!!busy}
+                className="w-full py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-60"
+                style={featured
+                  ? { background: `linear-gradient(135deg, ${accent}, ${accent}cc)`, color: '#0A0B0D' }
+                  : { background: 'var(--surface-2)', color: 'var(--text)', border: '1px solid var(--border-2)' }}>
+                {busy === t.id ? 'Processing…' : `Subscribe · $${t.price}/mo`}
+              </motion.button>
+            </div>
+          )
+        })}
+      </div>
+      <p className="text-[11px] text-white/25 text-center mt-3">Demo checkout — unlocks instantly, stored in your browser.</p>
+    </div>
   )
 }
 

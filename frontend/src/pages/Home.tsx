@@ -167,7 +167,7 @@ export default function Home() {
             onClick={() => navigate('/')}
             style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text)', padding: 0 }}
           >
-            <OlympicRings size="xs" animate={false} mono />
+            <OlympicRings size="xs" animate={false} />
             <span style={{ fontWeight: 900, letterSpacing: '-0.03em', fontSize: 19, color: 'var(--text)' }}>
               MY MATCH
               <span style={{ fontWeight: 600, color: 'var(--text-muted)' }}> · Olympics</span>

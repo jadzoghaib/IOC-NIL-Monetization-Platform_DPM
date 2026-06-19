@@ -99,7 +99,7 @@ export default function ShareButton({
               initial={{ scale: 0.94, y: 20, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }} exit={{ scale: 0.94, opacity: 0 }}
               onClick={e => e.stopPropagation()}
               className="w-full max-w-sm rounded-3xl p-5"
-              style={{ background: '#0D0D2B', border: `1px solid ${color}40` }}
+              style={{ background: 'var(--bg-card)', border: `1px solid ${color}40` }}
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-display text-2xl text-white tracking-wide">SHARE</h3>

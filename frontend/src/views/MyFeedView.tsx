@@ -7,7 +7,7 @@ import NewsCard from '../components/NewsCard'
 import { ensureSeeded } from '../lib/seed'
 import { labelFor } from '../lib/athleteLabel'
 import {
-  useStoreVersion, listPosts, listCourses, listSlots,
+  useStoreVersion, listPosts, listCourses, listSlots, isSubscribed,
   type AthletePost, type Course,
 } from '../lib/store'
 
@@ -201,18 +201,31 @@ export default function MyFeedView({ follows, onViewProfile, onGoDiscover }: Pro
                   {item.kind === 'news' && <NewsCard article={item.article} index={i} />}
 
                   {item.kind === 'post' && (
-                    <div className="rounded-2xl border p-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                      {item.post.sponsoredBy && <div className="text-xs font-bold text-gold tracking-wider mb-1.5">✨ Sponsored · {item.post.sponsoredBy}</div>}
-                      {item.post.caption && <p className="text-white/85 text-sm leading-relaxed mb-2 whitespace-pre-wrap">{item.post.caption}</p>}
-                      {item.post.mediaUrl && item.post.kind === 'photo' && (
-                        <img src={item.post.mediaUrl} alt="" className="rounded-xl max-h-72 w-full object-cover bg-white/[0.03] mb-2"
-                          onError={e => ((e.target as HTMLImageElement).style.display = 'none')} />
-                      )}
-                      {item.post.mediaUrl && item.post.kind === 'video' && (
-                        <a href={item.post.mediaUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-sm text-gold hover:opacity-80">▶ Watch video</a>
-                      )}
-                      <div className="text-white/35 text-xs mt-1">♥ {item.post.likes.toLocaleString()}</div>
-                    </div>
+                    isSubscribed(item.aid) ? (
+                      <div className="rounded-2xl border p-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                        {item.post.sponsoredBy && <div className="text-xs font-bold text-gold tracking-wider mb-1.5">✨ Sponsored · {item.post.sponsoredBy}</div>}
+                        {item.post.caption && <p className="text-white/85 text-sm leading-relaxed mb-2 whitespace-pre-wrap">{item.post.caption}</p>}
+                        {item.post.mediaUrl && item.post.kind === 'photo' && (
+                          <img src={item.post.mediaUrl} alt="" className="rounded-xl max-h-72 w-full object-cover bg-white/[0.03] mb-2"
+                            onError={e => ((e.target as HTMLImageElement).style.display = 'none')} />
+                        )}
+                        {item.post.mediaUrl && item.post.kind === 'video' && (
+                          <a href={item.post.mediaUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-sm text-gold hover:opacity-80">▶ Watch video</a>
+                        )}
+                        <div className="text-white/35 text-xs mt-1">♥ {item.post.likes.toLocaleString()}</div>
+                      </div>
+                    ) : (
+                      <button onClick={() => onViewProfile(item.aid)}
+                        className="w-full text-left rounded-2xl border p-4 flex items-center gap-3 transition-colors hover:bg-white/[0.03]"
+                        style={{ borderColor: `${m.color}30`, background: `${m.color}0A` }}>
+                        <div className="text-xl flex-shrink-0">🔒</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-white/80 text-sm font-semibold">{m.name.split(' ')[0]} posted{item.post.kind !== 'text' ? ` a ${item.post.kind}` : ''} — subscribers only</div>
+                          <div className="text-white/40 text-xs mt-0.5 truncate" style={{ filter: 'blur(3px)' }} aria-hidden>{item.post.caption || 'Behind-the-scenes content'}</div>
+                        </div>
+                        <span className="flex-shrink-0 text-xs font-bold px-2.5 py-1 rounded-lg" style={{ background: `${m.color}1A`, color: m.color }}>Unlock →</span>
+                      </button>
+                    )
                   )}
 
                   {item.kind === 'course' && (
