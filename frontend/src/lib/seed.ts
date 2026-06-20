@@ -165,12 +165,14 @@ export function ensureSeeded(a: SeedAthlete) {
 
 function ensureDressel(a: SeedAthlete) {
   if (isSeeded(a.id)) {
-    // Detect stale seed (pre-v2): missing Calendly URLs or YouTube videoIds
+    // Detect stale seed: missing Calendly / videoIds, or swapped video IDs (pre-v3)
     const appr = listAppearances(a.id)
     const crs  = listCourses(a.id)
     const hasCalendly = appr.some(ap => ap.calendlyUrl)
     const hasVideo    = crs.some(c => c.lessons.some(l => l.videoId))
-    if (hasCalendly && hasVideo) return  // already up-to-date
+    const swimCourse  = crs.find(c => c.title === 'Swimming Technique Masterclass')
+    const correctSwimVideo = swimCourse?.lessons.some(l => l.videoId === '7xhOfvq3u70')
+    if (hasCalendly && hasVideo && correctSwimVideo) return  // already up-to-date (v3)
     clearAthleteData(a.id)              // purge stale data and fall through to full re-seed
   }
 
@@ -226,7 +228,7 @@ function ensureDressel(a: SeedAthlete) {
       description: 'The exact underwater mechanics that powered 7 Olympic medals — broken down stroke by stroke, start to finish.',
       price: pricing.courseDefault, level: 'Intermediate', format: 'standard',
       lessons: [
-        { title: 'The Underwater Phase That Wins Races', duration: '14 min', videoId: '07CFoLlajmU', playlistId: 'PLZlsU_lxGy65MWskUjNo1niEywlHO4LWh' },
+        { title: 'The Underwater Phase That Wins Races', duration: '14 min', videoId: '7xhOfvq3u70', playlistId: 'PLZlsU_lxGy65kR0NYvTelcoTiUtiTuz_c' },
         { title: 'Race-start mechanics & reaction time', duration: '11 min' },
         { title: 'Stroke rate vs. distance-per-stroke', duration: '13 min' },
         { title: 'Turn & breakout optimisation', duration: '10 min' },
@@ -239,7 +241,7 @@ function ensureDressel(a: SeedAthlete) {
       description: 'The full gym programme behind elite swim power — explosive starts, shoulder stability, and injury prevention.',
       price: pricing.courseDefault, level: 'Advanced', format: 'standard',
       lessons: [
-        { title: 'Full Body Power for Explosive Starts', duration: '18 min', videoId: '7xhOfvq3u70', playlistId: 'PLZlsU_lxGy65kR0NYvTelcoTiUtiTuz_c' },
+        { title: 'Full Body Power for Explosive Starts', duration: '18 min', videoId: '07CFoLlajmU', playlistId: 'PLZlsU_lxGy65MWskUjNo1niEywlHO4LWh' },
         { title: 'Shoulder stability & longevity', duration: '16 min' },
         { title: 'Weekly programme structure', duration: '12 min' },
         { title: 'Recovery & load management', duration: '9 min' },
