@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
+import { Loader2, SearchX, Trophy, RotateCcw } from 'lucide-react'
 import type { useConnectionQuiz } from '../hooks/useConnectionQuiz'
 import type { useFollows } from '../hooks/useFollows'
 import { api } from '../lib/api'
@@ -10,7 +11,7 @@ import ShareButton from '../components/ShareButton'
 import { buildMatchCard } from '../lib/shareCard'
 
 const PERSONA_LABEL: Record<string, string> = {
-  hype: 'The Hype Fan 🔥', grind: 'The Grind Believer 💪', mix: 'The All-Rounder ⚡',
+  hype: 'The Hype Fan', grind: 'The Grind Believer', mix: 'The All-Rounder',
 }
 
 interface Props {
@@ -43,11 +44,7 @@ export default function ConnectionResultsView({ quiz, follows, games, onViewProf
   if (loading) {
     return (
       <div className="text-center py-20 text-white/40">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
-          className="text-3xl mb-3"
-        >⏳</motion.div>
+        <Loader2 size={32} className="animate-spin mb-3 mx-auto" style={{ color: 'var(--text-faint)' }} />
         Finding your matches across {games === 'paris_2024' ? '~9,200' : '~2,200'} athletes...
       </div>
     )
@@ -56,7 +53,7 @@ export default function ConnectionResultsView({ quiz, follows, games, onViewProf
   if (matches.length === 0) {
     return (
       <div className="text-center py-20 text-white/40 max-w-md mx-auto">
-        <div className="text-5xl mb-4">🤔</div>
+        <SearchX size={48} className="mb-4 mx-auto opacity-35" style={{ color: 'var(--text-faint)' }} />
         <p className="mb-2">No matches found.</p>
         <button onClick={quiz.reset} className="text-gold hover:opacity-80 text-sm transition-opacity">
           ← Retake quiz
@@ -148,9 +145,9 @@ export default function ConnectionResultsView({ quiz, follows, games, onViewProf
       <div className="mt-12 text-center">
         <button
           onClick={quiz.reset}
-          className="text-white/40 hover:text-white text-sm transition-colors"
+          className="inline-flex items-center gap-1.5 text-white/40 hover:text-white text-sm transition-colors"
         >
-          🔄 Retake quiz
+          <RotateCcw size={14} /> Retake quiz
         </button>
       </div>
     </motion.div>
@@ -193,8 +190,8 @@ function TopMatchCard({
       <div className="p-8" style={{ background: !a.thumbnail ? `linear-gradient(135deg, ${tier}18 0%, var(--bg-card) 100%)` : 'var(--bg-card)' }}>
         <div className="flex items-start justify-between gap-4 mb-4 flex-wrap">
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: tier }}>
-              🏆 YOUR TOP MATCH
+            <p className="text-xs font-semibold uppercase tracking-widest mb-2 flex items-center gap-1.5" style={{ color: tier }}>
+              <Trophy size={14} /> YOUR TOP MATCH
             </p>
             {!a.thumbnail && <span className="text-5xl block mb-3">{a.flag}</span>}
             {a.thumbnail && <span className="text-2xl mr-2">{a.flag}</span>}

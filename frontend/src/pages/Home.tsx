@@ -135,11 +135,10 @@ function ModeCard({
 export default function Home() {
   const navigate = useNavigate()
   const location = useLocation()
-  const [theme] = useTheme()
+  useTheme()
 
   return (
     <div
-      data-theme={theme}
       style={{
         background: 'var(--bg)',
         color: 'var(--text)',

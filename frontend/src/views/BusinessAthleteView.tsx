@@ -1,7 +1,9 @@
 import { useState, useEffect, type ReactNode } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Users, MessageCircle, ShieldCheck, Globe, AlertTriangle } from 'lucide-react'
 import { addOffer, addMessage, getSponsor, DEAL_TYPE_META, type DealType } from '../lib/store'
 import InfoPopover from '../components/InfoPopover'
+import MedalDots from '../components/MedalDots'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface CategoryAvail { category: string; available: boolean }
@@ -90,7 +92,7 @@ function ScoreRing({ score, color, size = 96 }: { score: number; color: string; 
 
 // ── KPI Card ──────────────────────────────────────────────────────────────────
 function KpiCard({ icon, label, value, sub, accent = '#A78BFA', info }: {
-  icon: string; label: string; value: string; sub?: string; accent?: string; info?: ReactNode
+  icon: ReactNode; label: string; value: string; sub?: string; accent?: string; info?: ReactNode
 }) {
   return (
     <motion.div
@@ -99,7 +101,7 @@ function KpiCard({ icon, label, value, sub, accent = '#A78BFA', info }: {
       style={{ background: `${accent}10`, border: `1px solid ${accent}25` }}
     >
       <div className="flex items-start justify-between">
-        <div className="text-xl mb-1">{icon}</div>
+        <div className="mb-1">{icon}</div>
         {info && <InfoPopover title={label}>{info}</InfoPopover>}
       </div>
       <div className="text-[10px] font-bold uppercase tracking-widest text-white/40">{label}</div>
@@ -134,7 +136,7 @@ export default function BusinessAthleteView({ athleteId, onBack }: Props) {
 
   if (error || !athlete) return (
     <div className="text-white/40 text-center py-20">
-      <div className="text-4xl mb-4">⚠️</div>
+      <AlertTriangle size={40} className="mb-4 mx-auto" style={{ color: '#F97316', opacity: 0.7 }} />
       <div>Failed to load athlete data</div>
       <button onClick={onBack} className="mt-4 text-purple-400 hover:text-purple-300 text-sm">← Back</button>
     </div>
@@ -187,10 +189,10 @@ export default function BusinessAthleteView({ athleteId, onBack }: Props) {
             <span className="text-white/20">·</span>
             <span className="text-white/40 text-sm">{athlete.sport}</span>
             {athlete.is_medalist && (
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: 'rgba(255,215,0,0.15)', color: '#FFD700' }}>
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: 'rgba(255,215,0,0.15)', color: '#FFD700' }}>
                 {medals && (medals.gold + medals.silver + medals.bronze) > 0
-                  ? `${medals.gold > 0 ? `🥇×${medals.gold} ` : ''}${medals.silver > 0 ? `🥈×${medals.silver} ` : ''}${medals.bronze > 0 ? `🥉×${medals.bronze}` : ''}`.trim()
-                  : '🏅 Medalist'}
+                  ? <MedalDots gold={medals.gold} silver={medals.silver} bronze={medals.bronze} showLabels />
+                  : 'Medalist'}
               </span>
             )}
           </div>
@@ -227,13 +229,13 @@ export default function BusinessAthleteView({ athleteId, onBack }: Props) {
 
       {/* ── METRICS GRID ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-        <KpiCard icon="👥" label="Audience Reach" value={fmt(bm.audience_reach)} sub="est. monthly" accent="#A78BFA"
+        <KpiCard icon={<Users size={18} color="#A78BFA" />} label="Audience Reach" value={fmt(bm.audience_reach)} sub="est. monthly" accent="#A78BFA"
           info={<><b>What it means:</b> roughly how many people this athlete puts a message in front of in a month. <b>The logic:</b> we scale their Wikipedia attention up by how mainstream their sport is and whether they medalled. It's a reach <i>proxy</i> — not a verified follower count.</>} />
-        <KpiCard icon="💬" label="Engagement Rate" value={`${bm.engagement_rate}%`} sub="vs 2.3% avg" accent="#38BDF8"
+        <KpiCard icon={<MessageCircle size={18} color="#38BDF8" />} label="Engagement Rate" value={`${bm.engagement_rate}%`} sub="vs 2.3% avg" accent="#38BDF8"
           info={<><b>What it means:</b> of the people who see a post, what share actually like, comment, or share it — i.e. how <i>active</i> the following is, not just how big. <b>Why it matters:</b> a smaller, fired-up audience often converts better than a huge passive one. <b>The logic:</b> niche athletes usually run hot (4–9%), mega-reach stars sit lower (1–2%); we then nudge it up for athletes with strong fan ratings.</>} />
-        <KpiCard icon="🛡️" label="Brand Safety" value={bm.brand_safety_grade} sub={`${bm.brand_safety_score}/100`} accent="#34D399"
+        <KpiCard icon={<ShieldCheck size={18} color="#34D399" />} label="Brand Safety" value={bm.brand_safety_grade} sub={`${bm.brand_safety_score}/100`} accent="#34D399"
           info={<><b>What it means:</b> how "safe" a brand should feel attaching its name to this athlete. <b>The logic:</b> starts from a baseline for their sport, adds a bump for medals, with a little variance — graded A+ to C.</>} />
-        <KpiCard icon="🌍" label="Primary Market" value={bm.primary_market} sub={`${bm.market_value} CPM · ×${bm.cpm_multiplier}`} accent="#FB923C"
+        <KpiCard icon={<Globe size={18} color="#FB923C" />} label="Primary Market" value={bm.primary_market} sub={`${bm.market_value} CPM · ×${bm.cpm_multiplier}`} accent="#FB923C"
           info={<><b>What it means:</b> the home market where this athlete is most valuable, and how pricey that ad market is. <b>The logic:</b> their country, with a CPM multiplier from a market table (US ×3.2 → India ×1.1).</>} />
       </div>
 

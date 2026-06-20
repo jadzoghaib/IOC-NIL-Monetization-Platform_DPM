@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { useFollows } from '../hooks/useFollows'
 import { ATHLETES } from '../data/athletes'
@@ -22,6 +22,10 @@ import {
 import { ensureSeeded } from '../lib/seed'
 import { labelFor } from '../lib/athleteLabel'
 import ChatThread from '../components/ChatThread'
+import {
+  Newspaper, RotateCcw, Handshake, Flag, Flame, Crown, Zap, Sparkles, Rocket, Dumbbell, Globe,
+  GraduationCap, Video, Lock, CheckCircle2, Camera, PenLine, LockOpen, Star, CalendarDays, MessageCircle,
+} from 'lucide-react'
 
 interface Props {
   athleteId: string
@@ -259,7 +263,7 @@ export default function AthleteProfileView({ athleteId, follows, onBack }: Props
                 return (
                   <span className="flex items-center gap-1.5">
                     {picUrl
-                      ? <img src={picUrl} alt="" width={14} height={14} style={{ filter: 'invert(1)', opacity: 0.6 }} />
+                      ? <img src={picUrl} alt="" width={14} height={14} className="sport-pictogram" style={{ opacity: 0.6 }} />
                       : null}
                     <span>{athlete.sport}</span>
                   </span>
@@ -297,14 +301,14 @@ export default function AthleteProfileView({ athleteId, follows, onBack }: Props
               )}
               {/* AI-detected archetype badge (full-database athletes) */}
               {!athlete.archetype_name && aiArchetype && (() => {
-                const ARCHETYPE_LABELS: Record<string, { label: string; emoji: string }> = {
-                  comeback:       { label: 'The Comeback',       emoji: '🔥' },
-                  legend_finale:  { label: "The Legend's Last Stand", emoji: '👑' },
-                  dominant_force: { label: 'The Unstoppable',    emoji: '⚡' },
-                  rising_star:    { label: 'The Arrival',        emoji: '🌟' },
-                  pioneer:        { label: 'The First',          emoji: '🚀' },
-                  underdog:       { label: 'The Defier',         emoji: '💪' },
-                  ambassador:     { label: 'The Mission',        emoji: '🌍' },
+                const ARCHETYPE_LABELS: Record<string, { label: string; icon: ReactNode }> = {
+                  comeback:       { label: 'The Comeback',            icon: <Flame size={12} color="#EE334E" /> },
+                  legend_finale:  { label: "The Legend's Last Stand", icon: <Crown size={12} color="#FFD700" /> },
+                  dominant_force: { label: 'The Unstoppable',         icon: <Zap size={12} color="#FCB131" /> },
+                  rising_star:    { label: 'The Arrival',             icon: <Sparkles size={12} color="#FCB131" /> },
+                  pioneer:        { label: 'The First',               icon: <Rocket size={12} color="#A78BFA" /> },
+                  underdog:       { label: 'The Defier',              icon: <Dumbbell size={12} color="#38BDF8" /> },
+                  ambassador:     { label: 'The Mission',             icon: <Globe size={12} color="#FB923C" /> },
                 }
                 const arc = ARCHETYPE_LABELS[aiArchetype]
                 return arc ? (
@@ -315,7 +319,7 @@ export default function AthleteProfileView({ athleteId, follows, onBack }: Props
                     className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold"
                     style={{ background: `${color}18`, color }}
                   >
-                    {arc.emoji} {arc.label}
+                    {arc.icon} {arc.label}
                   </motion.div>
                 ) : null
               })()}
@@ -339,7 +343,7 @@ export default function AthleteProfileView({ athleteId, follows, onBack }: Props
 
               {(athlete.is_flagbearer_open || athlete.is_flagbearer_close) && (
                 <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-oly-red/15 text-oly-red">
-                  🚩 Flagbearer
+                  <Flag size={12} color="#EE334E" /> Flagbearer
                   {athlete.is_flagbearer_open && athlete.is_flagbearer_close ? ' (Open & Close)'
                     : athlete.is_flagbearer_open ? ' (Opening)'
                     : ' (Closing)'}
@@ -432,7 +436,7 @@ export default function AthleteProfileView({ athleteId, follows, onBack }: Props
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display text-2xl text-white">📰 LATEST STORIES</h2>
+            <h2 className="font-display text-2xl text-white flex items-center gap-2"><Newspaper size={20} style={{ color: 'var(--text-muted)' }} /> LATEST STORIES</h2>
             <div className="flex items-center gap-3">
               {stale && <span className="text-xs text-white/30 italic">cached</span>}
               {source === 'generated' && <span className="text-xs text-white/30 italic">AI-curated</span>}
@@ -445,7 +449,7 @@ export default function AthleteProfileView({ athleteId, follows, onBack }: Props
                 className="text-xs text-white/30 hover:text-gold transition-colors disabled:opacity-40"
                 title="Refresh news + regenerate bio"
               >
-                🔄
+                <RotateCcw size={13} />
               </button>
             </div>
           </div>
@@ -478,8 +482,8 @@ export default function AthleteProfileView({ athleteId, follows, onBack }: Props
         <div>
           {/* Portfolio header */}
           <div className="mb-5">
-            <h2 className="font-display text-2xl text-white mb-1">
-              🤝 WORK WITH {athlete.name.split(' ')[0].toUpperCase()}
+            <h2 className="font-display text-2xl text-white mb-1 flex items-center gap-2">
+              <Handshake size={20} style={{ color: 'var(--text-muted)' }} /> WORK WITH {athlete.name.split(' ')[0].toUpperCase()}
             </h2>
             <p className="text-xs text-white/35">
               Book {athlete.name.split(' ')[0]} for appearances, events, and experiences
@@ -546,7 +550,7 @@ function FanCoursesSection({ athleteId, athleteName }: { athleteId: string; athl
 
   return (
     <div className="mb-6">
-      <h2 className="font-display text-2xl text-white mb-1">🎓 TRAIN WITH {athleteName.split(' ')[0].toUpperCase()}</h2>
+      <h2 className="font-display text-2xl text-white mb-1 flex items-center gap-2"><GraduationCap size={20} color="#FFD700" /> TRAIN WITH {athleteName.split(' ')[0].toUpperCase()}</h2>
       <p className="text-xs text-white/35 mb-4">Courses, drills, and 1:1 video coaching — tap to open.</p>
       <div className="space-y-2.5">
         {courses.map(c => {
@@ -558,9 +562,9 @@ function FanCoursesSection({ athleteId, athleteName }: { athleteId: string; athl
             <button key={c.id} onClick={() => setActive(c)}
               className="w-full text-left rounded-2xl border p-4 flex items-center gap-3 transition-colors hover:bg-white/[0.03]"
               style={{ borderColor: `${accent}25`, background: `${accent}08` }}>
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                 style={{ background: `${accent}1A`, border: `1px solid ${accent}30` }}>
-                {coaching ? '🎥' : unlocked ? '✅' : '🔒'}
+                {coaching ? <Video size={18} style={{ color: accent }} /> : unlocked ? <CheckCircle2 size={18} color="#22C55E" /> : <Lock size={18} style={{ color: 'var(--text-faint)' }} />}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-white text-sm font-semibold truncate">{c.title}</div>
@@ -605,7 +609,7 @@ function FanCourseModal({ course: c, athleteName, onClose }: { course: Course; a
         <div className="flex items-start justify-between gap-3 mb-3">
           <div>
             <div className="text-[10px] font-black uppercase tracking-widest mb-1" style={{ color: accent }}>
-              {coaching ? '🎥 1:1 Video Coaching' : `▶ Course · ${c.level}`}
+              {coaching ? <span className="inline-flex items-center gap-1"><Video size={11} />1:1 Video Coaching</span> : `▶ Course · ${c.level}`}
             </div>
             <h3 className="font-display text-2xl text-white tracking-wide leading-none">{c.title}</h3>
           </div>
@@ -638,7 +642,7 @@ function FanCourseModal({ course: c, athleteName, onClose }: { course: Course; a
                 <div key={i} className="flex items-center justify-between text-sm rounded-lg px-3 py-2"
                   style={{ background: 'rgba(255,255,255,0.03)' }}>
                   <span className="text-white/70 flex items-center gap-2">
-                    <span>{unlocked ? '▶' : '🔒'}</span> {i + 1}. {l.title}
+                    <span>{unlocked ? '▶' : <Lock size={12} style={{ color: 'var(--text-faint)' }} />}</span> {i + 1}. {l.title}
                   </span>
                   <span className="text-white/30 text-xs">{l.duration}</span>
                 </div>
@@ -649,9 +653,9 @@ function FanCourseModal({ course: c, athleteName, onClose }: { course: Course; a
             ) : (
               <>
                 <div className="rounded-xl p-3 mb-4 text-sm text-emerald-300/80" style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}>
-                  ✅ Unlocked — all lessons are now available.
+                  <CheckCircle2 size={14} className="inline mr-1" color="#22C55E" /> Unlocked — all lessons are now available.
                 </div>
-                <div className="text-[11px] uppercase tracking-widest text-white/30 mb-2">💬 Drills & Feedback</div>
+                <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-white/30 mb-2"><MessageCircle size={11} /> Drills & Feedback</div>
                 <ChatThread threadId={`drills:${c.id}`} me="fan" otherName={first} accent={accent}
                   placeholder="Post your drill or ask a question…"
                   emptyHint={`Share how your drills are going — ${first} gives feedback here.`}
@@ -690,7 +694,7 @@ function FanContentSection({ athleteId, athleteName, accent }: { athleteId: stri
     <div className="mb-8">
       <div className="flex items-end justify-between mb-4 gap-3">
         <div>
-          <h2 className="font-display text-2xl text-white">📸 BEHIND THE SCENES</h2>
+          <h2 className="font-display text-2xl text-white flex items-center gap-2"><Camera size={20} style={{ color: 'var(--text-muted)' }} /> BEHIND THE SCENES</h2>
           <p className="text-xs text-white/35">
             {posts.length} subscriber-only post{posts.length !== 1 ? 's' : ''} from {first}
           </p>
@@ -724,10 +728,10 @@ function FanContentSection({ athleteId, athleteName, accent }: { athleteId: stri
   )
 }
 
-const POST_KIND_META: Record<AthletePost['kind'], { icon: string; label: string }> = {
-  photo: { icon: '🖼️', label: 'Photo' },
-  video: { icon: '🎬', label: 'Video' },
-  text:  { icon: '✍️', label: 'Post' },
+const POST_KIND_META: Record<AthletePost['kind'], { icon: ReactNode; label: string }> = {
+  photo: { icon: <Camera size={11} style={{ color: 'var(--accent)' }} />, label: 'Photo' },
+  video: { icon: <Video size={11} style={{ color: 'var(--accent)' }} />, label: 'Video' },
+  text:  { icon: <PenLine size={11} style={{ color: 'var(--text-muted)' }} />, label: 'Post' },
 }
 
 function LockedPostCard({ post, accent }: { post: AthletePost; accent: string }) {
@@ -742,8 +746,8 @@ function LockedPostCard({ post, accent }: { post: AthletePost; accent: string })
       {/* Lock overlay */}
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 text-center px-3"
         style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.55))' }}>
-        <div className="text-2xl">🔒</div>
-        <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: accent }}>{meta.icon} {meta.label} · Locked</div>
+        <Lock size={24} style={{ color: 'var(--text-faint)' }} />
+        <div className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider" style={{ color: accent }}>{meta.icon} {meta.label} · Locked</div>
         <div className="text-[10px] text-white/50">Subscribers only</div>
       </div>
     </div>
@@ -759,7 +763,7 @@ function UnlockedPostCard({ post }: { post: AthletePost }) {
   }
   return (
     <div className="rounded-2xl border p-4" style={{ background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.08)' }}>
-      {post.sponsoredBy && <div className="text-xs font-bold text-gold tracking-wider mb-1.5">✨ Sponsored · {post.sponsoredBy}</div>}
+      {post.sponsoredBy && <div className="flex items-center gap-1.5 text-xs font-bold text-gold tracking-wider mb-1.5"><Sparkles size={11} /> Sponsored · {post.sponsoredBy}</div>}
       <div className="text-xs text-white/35 mb-2">{POST_KIND_META[post.kind].icon} {POST_KIND_META[post.kind].label} · {relTime(post.createdAt)}</div>
       {post.caption && <p className="text-white/85 text-sm leading-relaxed mb-2 whitespace-pre-wrap">{post.caption}</p>}
       {post.mediaUrl && post.kind === 'photo' && (
@@ -782,7 +786,7 @@ function SubscribePanel({ athleteId, first, tiers, accent, count }: {
   return (
     <div className="rounded-2xl border p-5" style={{ borderColor: `${accent}30`, background: `${accent}0A` }}>
       <div className="text-center mb-4">
-        <div className="text-2xl mb-1">🔓</div>
+        <LockOpen size={28} color="#22C55E" className="mx-auto mb-1" />
         <h3 className="font-display text-xl text-white">SUBSCRIBE TO UNLOCK</h3>
         <p className="text-xs text-white/45 mt-1">
           Get all {count} of {first}'s behind-the-scenes posts, photos and videos. Cancel anytime.
@@ -836,10 +840,10 @@ function FanAvailabilityCard({ athleteId, athleteName }: { athleteId: string; at
 
   return (
     <div className="rounded-2xl border p-5 mb-6" style={{ borderColor: 'rgba(255,215,0,0.18)', background: 'rgba(255,215,0,0.03)' }}>
-      <h3 className="font-display text-xl text-white mb-3">📅 BOOK {first.toUpperCase()}</h3>
+      <h3 className="font-display text-xl text-white mb-3 flex items-center gap-2"><CalendarDays size={18} color="#2A9D8F" /> BOOK {first.toUpperCase()}</h3>
 
       <div className="flex items-center justify-between text-sm mb-4">
-        <span className="text-white/55">⭐ Inner Circle membership</span>
+        <span className="flex items-center gap-1.5 text-white/55"><Star size={13} color="#FFD700" /> Inner Circle membership</span>
         <span className="text-gold font-bold">{fanMoney(pricing.subscription)} <span className="text-white/30 font-normal text-xs">/ mo</span></span>
       </div>
 

@@ -5,6 +5,7 @@
  */
 import { useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { Medal, Handshake, Gift, Link2, BarChart2, RotateCcw } from 'lucide-react'
 import type { useQuiz } from '../hooks/useQuiz'
 import type { useFollows } from '../hooks/useFollows'
 import { ARCHETYPES, ARCHETYPE_SPONSORS, ARCHETYPE_DIST, getArchetypeKey } from '../data/archetypes'
@@ -109,7 +110,7 @@ export default function ResultsView({ quiz, follows, onViewProfile }: Props) {
           className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold"
           style={{ background: `${color}18`, color }}
         >
-          📊 {archetype.dataInsight}
+          <BarChart2 size={12} /> {archetype.dataInsight}
         </motion.div>
 
         <motion.div
@@ -140,7 +141,7 @@ export default function ResultsView({ quiz, follows, onViewProfile }: Props) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Left: Athlete match */}
         <div>
-          <h2 className="font-display text-2xl text-white mb-4">🏅 YOUR MATCHED ATHLETE</h2>
+          <h2 className="font-display text-2xl text-white mb-4 flex items-center gap-2"><Medal size={18} /> YOUR MATCHED ATHLETE</h2>
 
           {/* Main match card */}
           <motion.div
@@ -198,7 +199,7 @@ export default function ResultsView({ quiz, follows, onViewProfile }: Props) {
         {/* Right: Sponsor + Offerings + Referral */}
         <div>
           {/* Sponsor */}
-          <h2 className="font-display text-2xl text-white mb-4">🤝 YOUR SPONSOR MATCH</h2>
+          <h2 className="font-display text-2xl text-white mb-4 flex items-center gap-2"><Handshake size={18} /> YOUR SPONSOR MATCH</h2>
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -213,7 +214,7 @@ export default function ResultsView({ quiz, follows, onViewProfile }: Props) {
           </motion.div>
 
           {/* Offerings */}
-          <h2 className="font-display text-2xl text-white mb-4">🎁 {matchedAthlete.name.split(' ')[0]}'s OFFERINGS</h2>
+          <h2 className="font-display text-2xl text-white mb-4 flex items-center gap-2"><Gift size={18} /> {matchedAthlete.name.split(' ')[0]}'s OFFERINGS</h2>
           <div className="space-y-3 mb-6">
             {offerings.map((o, i) => (
               <OfferingCard key={o.id} offering={o} athleteName={matchedAthlete.name} index={i} />
@@ -221,7 +222,7 @@ export default function ResultsView({ quiz, follows, onViewProfile }: Props) {
           </div>
 
           {/* Referral tiers */}
-          <h2 className="font-display text-2xl text-white mb-3">🔗 REFERRAL UNLOCKS</h2>
+          <h2 className="font-display text-2xl text-white mb-3 flex items-center gap-2"><Link2 size={18} /> REFERRAL UNLOCKS</h2>
           <div className="space-y-2">
             {REFERRAL_TIERS.map((t, i) => (
               <motion.div
@@ -242,7 +243,7 @@ export default function ResultsView({ quiz, follows, onViewProfile }: Props) {
             onClick={quiz.reset}
             className="mt-6 text-white/30 hover:text-white/60 text-sm transition-colors"
           >
-            🔄 Retake quiz
+            <RotateCcw size={14} className="inline mr-1" /> Retake quiz
           </button>
         </div>
       </div>

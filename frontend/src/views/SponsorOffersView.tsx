@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { Inbox, MessageCircle } from 'lucide-react'
 import {
   useStoreVersion, listOffers, listCampaigns, deleteCampaign, threadCount,
   DEAL_TYPE_META, type Offer,
@@ -40,7 +41,7 @@ export default function SponsorOffersView({ brand, onScout }: Props) {
   if (offers.length === 0) {
     return (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16">
-        <div className="text-4xl mb-4">📨</div>
+        <Inbox size={40} className="mb-4 mx-auto opacity-30" style={{ color: 'var(--text-faint)' }} />
         <div className="text-white/50 mb-1">No offers sent yet</div>
         <p className="text-white/30 text-sm mb-6 max-w-sm mx-auto">
           Scout an athlete and hit <span className="text-white/50">Send Offer</span>, or build a campaign to send several at once.
@@ -118,7 +119,7 @@ function OfferRow({ o }: { o: Offer }) {
       <button onClick={() => setOpen(v => !v)} className="w-full flex items-center gap-3 p-4 text-left transition-colors hover:bg-white/[0.02]">
         <div className="flex-1 min-w-0">
           <div className="text-white text-sm font-semibold truncate">{o.athleteName || o.athleteId}</div>
-          <div className="text-white/40 text-xs">{meta.icon} {meta.label} · {relTime(o.createdAt)} · 💬 {msgs}</div>
+          <div className="flex items-center gap-1 text-white/40 text-xs">{meta.icon} {meta.label} · {relTime(o.createdAt)} · <MessageCircle size={11} /> {msgs}</div>
         </div>
         <div className="text-white font-bold text-sm flex-shrink-0">{money(o.amount)}</div>
         <span className="flex-shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold" style={{ background: ss.bg, color: ss.color }}>{ss.label}</span>

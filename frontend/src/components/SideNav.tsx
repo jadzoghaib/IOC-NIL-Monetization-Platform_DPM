@@ -141,7 +141,7 @@ export default function SideNav({ accent, modeIcon, modeLabel, items, active, on
               exit={{ x: -210 }}
               transition={{ type: 'spring', damping: 28, stiffness: 290 }}
               className="md:hidden fixed left-0 top-0 bottom-0 w-52 z-50 border-r overflow-y-auto"
-              style={{ background: 'var(--bg-primary)', borderColor: 'var(--border)' }}
+              style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}
             >
               <button
                 onClick={onClose}

@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { Target, Compass } from 'lucide-react'
 import type { GamesKey } from '../lib/api'
 
 interface Props {
@@ -83,7 +84,7 @@ export default function EntryChoiceView({ games, onTakeQuiz, onBrowse, onBack }:
         >
           <div className="absolute top-0 left-0 right-0 h-1 bg-gold" />
 
-          <div className="text-6xl mb-4">🎯</div>
+          <Target size={64} color="#FFD700" className="mb-4 mx-auto" />
 
           <p className="text-xs font-semibold uppercase tracking-widest text-gold/80 mb-1">
             45 SECONDS · 7 QUESTIONS
@@ -117,7 +118,7 @@ export default function EntryChoiceView({ games, onTakeQuiz, onBrowse, onBack }:
         >
           <div className="absolute top-0 left-0 right-0 h-1" style={{ background: '#4ECDC4' }} />
 
-          <div className="text-6xl mb-4">🔭</div>
+          <Compass size={64} color="#4ECDC4" className="mb-4 mx-auto" />
 
           <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: '#4ECDC4' }}>
             FULL ROSTER

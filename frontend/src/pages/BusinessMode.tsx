@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Handshake, Compass, Target, Send, BarChart3, ShieldCheck, ClipboardList, Sparkles, Bookmark, ArrowLeft } from 'lucide-react'
+import { Handshake, Compass, Target, Send, BarChart3, ShieldCheck, ClipboardList, Sparkles, Bookmark, ArrowLeft, Globe } from 'lucide-react'
 import type { GamesKey } from '../lib/api'
 import { useStoreVersion, getSponsor, setSponsor, listOffers } from '../lib/store'
 import BusinessDiscoverView from '../views/BusinessDiscoverView'
@@ -24,7 +24,7 @@ const GAMES_LABEL: Record<GamesKey, { name: string; flag: string }> = {
 }
 
 const GAMES_FILTERS: { key: GamesFilter; label: string; short: string }[] = [
-  { key: 'all',        label: '🌐 All Olympics',          short: 'All' },
+  { key: 'all',        label: 'All Olympics',              short: 'All' },
   { key: 'paris_2024', label: '🇫🇷 Paris 2024',           short: '🇫🇷 Summer' },
   { key: 'milan_2026', label: '🇮🇹 Milano-Cortina 2026',  short: '🇮🇹 Winter' },
 ]
@@ -41,7 +41,7 @@ function GamesSegmented({ value, onChange }: { value: GamesFilter; onChange: (g:
           style={value === g.key
             ? { background: 'rgba(167,139,250,0.18)', color: ACCENT }
             : { background: 'transparent', color: 'var(--text-faint)' }}>
-          {g.short}
+          {g.key === 'all' ? <><Globe size={11} className="inline mr-1" />{g.short}</> : g.short}
         </button>
       ))}
     </div>

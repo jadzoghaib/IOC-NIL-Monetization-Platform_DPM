@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type ReactNode } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Camera, Newspaper, GraduationCap, CalendarDays, Inbox, SearchX, Lock, Sparkles, Video } from 'lucide-react'
 import type { useFollows } from '../hooks/useFollows'
 import { api } from '../lib/api'
 import type { NewsArticle, AthleteRecord } from '../lib/api'
@@ -103,7 +104,7 @@ export default function MyFeedView({ follows, onViewProfile, onGoDiscover }: Pro
     return (
       <motion.div key="feed-empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-        <div className="text-6xl mb-6">📭</div>
+        <Inbox size={56} className="mb-6 mx-auto" style={{ color: 'var(--text-faint)', opacity: 0.35 }} />
         <h2 className="font-display text-4xl text-white mb-3">YOUR WALL IS EMPTY</h2>
         <p className="text-white/40 max-w-sm mb-8">Follow athletes from your matches or Discover to get their posts, news, courses, and open dates here.</p>
         <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} onClick={onGoDiscover}
@@ -114,8 +115,11 @@ export default function MyFeedView({ follows, onViewProfile, onGoDiscover }: Pro
     )
   }
 
-  const TYPE_PILLS: { key: TypeFilter; label: string }[] = [
-    { key: 'all', label: 'Everything' }, { key: 'post', label: '📸 Posts' }, { key: 'news', label: '📰 News' }, { key: 'course', label: '🎓 Courses' },
+  const TYPE_PILLS: { key: TypeFilter; label: string; icon: ReactNode }[] = [
+    { key: 'all',    label: 'Everything', icon: null },
+    { key: 'post',   label: 'Posts',      icon: <Camera size={11} /> },
+    { key: 'news',   label: 'News',       icon: <Newspaper size={11} /> },
+    { key: 'course', label: 'Courses',    icon: <GraduationCap size={11} /> },
   ]
 
   return (
@@ -129,7 +133,7 @@ export default function MyFeedView({ follows, onViewProfile, onGoDiscover }: Pro
       <div className="flex flex-wrap gap-2 mb-3">
         <button onClick={() => setAthleteFilter('all')}
           className="px-3 py-1.5 rounded-full border text-xs font-semibold transition-all"
-          style={athleteFilter === 'all' ? { borderColor: 'rgba(255,255,255,0.25)', background: 'rgba(255,255,255,0.08)', color: '#fff' } : { borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)' }}>
+          style={athleteFilter === 'all' ? { borderColor: 'var(--border-2)', background: 'var(--surface)', color: 'var(--text)' } : { borderColor: 'var(--border)', color: 'var(--text-muted)' }}>
           All athletes
         </button>
         {followed.map(a => (
@@ -145,9 +149,9 @@ export default function MyFeedView({ follows, onViewProfile, onGoDiscover }: Pro
       <div className="flex flex-wrap gap-2 mb-6">
         {TYPE_PILLS.map(t => (
           <button key={t.key} onClick={() => setTypeFilter(t.key)}
-            className="px-3 py-1 rounded-full text-[11px] font-bold transition-all"
-            style={typeFilter === t.key ? { background: 'rgba(255,215,0,0.15)', color: '#FFD700', border: '1px solid rgba(255,215,0,0.3)' } : { background: 'transparent', color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.1)' }}>
-            {t.label}
+            className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-bold transition-all"
+            style={typeFilter === t.key ? { background: 'rgba(255,215,0,0.15)', color: '#FFD700', border: '1px solid rgba(255,215,0,0.3)' } : { background: 'transparent', color: 'var(--text-faint)', border: '1px solid var(--border)' }}>
+            {t.icon && <span className="flex-shrink-0">{t.icon}</span>}{t.label}
           </button>
         ))}
       </div>
@@ -155,7 +159,7 @@ export default function MyFeedView({ follows, onViewProfile, onGoDiscover }: Pro
       {/* Upcoming appointments */}
       {appointments.length > 0 && (typeFilter === 'all') && (
         <div className="rounded-2xl border p-4 mb-6" style={{ borderColor: 'rgba(42,157,143,0.2)', background: 'rgba(42,157,143,0.05)' }}>
-          <div className="text-[11px] font-black uppercase tracking-widest text-emerald-300/70 mb-2">📅 Open with your athletes</div>
+          <div className="flex items-center gap-1 text-[11px] font-black uppercase tracking-widest text-emerald-300/70 mb-2"><CalendarDays size={12} /> Open with your athletes</div>
           <div className="flex flex-wrap gap-2">
             {appointments.map(({ id, slot }) => {
               const m = metas[id]
@@ -203,7 +207,7 @@ export default function MyFeedView({ follows, onViewProfile, onGoDiscover }: Pro
                   {item.kind === 'post' && (
                     isSubscribed(item.aid) ? (
                       <div className="rounded-2xl border p-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                        {item.post.sponsoredBy && <div className="text-xs font-bold text-gold tracking-wider mb-1.5">✨ Sponsored · {item.post.sponsoredBy}</div>}
+                        {item.post.sponsoredBy && <div className="flex items-center gap-1.5 text-xs font-bold text-gold tracking-wider mb-1.5"><Sparkles size={11} /> Sponsored · {item.post.sponsoredBy}</div>}
                         {item.post.caption && <p className="text-white/85 text-sm leading-relaxed mb-2 whitespace-pre-wrap">{item.post.caption}</p>}
                         {item.post.mediaUrl && item.post.kind === 'photo' && (
                           <img src={item.post.mediaUrl} alt="" className="rounded-xl max-h-72 w-full object-cover bg-white/[0.03] mb-2"
@@ -218,7 +222,7 @@ export default function MyFeedView({ follows, onViewProfile, onGoDiscover }: Pro
                       <button onClick={() => onViewProfile(item.aid)}
                         className="w-full text-left rounded-2xl border p-4 flex items-center gap-3 transition-colors hover:bg-white/[0.03]"
                         style={{ borderColor: `${m.color}30`, background: `${m.color}0A` }}>
-                        <div className="text-xl flex-shrink-0">🔒</div>
+                        <Lock size={20} className="flex-shrink-0" style={{ color: 'var(--text-faint)' }} />
                         <div className="flex-1 min-w-0">
                           <div className="text-white/80 text-sm font-semibold">{m.name.split(' ')[0]} posted{item.post.kind !== 'text' ? ` a ${item.post.kind}` : ''} — subscribers only</div>
                           <div className="text-white/40 text-xs mt-0.5 truncate" style={{ filter: 'blur(3px)' }} aria-hidden>{item.post.caption || 'Behind-the-scenes content'}</div>
@@ -231,7 +235,11 @@ export default function MyFeedView({ follows, onViewProfile, onGoDiscover }: Pro
                   {item.kind === 'course' && (
                     <button onClick={() => onViewProfile(item.aid)} className="w-full text-left rounded-2xl border p-4 flex items-center gap-3 transition-colors hover:bg-white/[0.03]"
                       style={{ background: (item.course.format ?? 'standard') === 'coaching' ? 'rgba(42,157,143,0.06)' : 'rgba(255,215,0,0.05)', borderColor: (item.course.format ?? 'standard') === 'coaching' ? 'rgba(42,157,143,0.25)' : 'rgba(255,215,0,0.2)' }}>
-                      <div className="text-2xl flex-shrink-0">{(item.course.format ?? 'standard') === 'coaching' ? '🎥' : '🎓'}</div>
+                      <div className="flex-shrink-0">
+                        {(item.course.format ?? 'standard') === 'coaching'
+                          ? <Video size={22} style={{ color: '#2A9D8F' }} />
+                          : <GraduationCap size={22} style={{ color: '#FFD700' }} />}
+                      </div>
                       <div className="flex-1 min-w-0">
                         <div className="text-white/60 text-[11px] uppercase tracking-wide">{(item.course.format ?? 'standard') === 'coaching' ? 'New 1:1 coaching' : 'New course'}</div>
                         <div className="text-white text-sm font-semibold truncate">{item.course.title}</div>
@@ -253,7 +261,7 @@ export default function MyFeedView({ follows, onViewProfile, onGoDiscover }: Pro
 
       {!loading && wall.length === 0 && (
         <div className="text-center py-16 text-white/30">
-          <div className="text-4xl mb-4">🔍</div>
+          <SearchX size={40} className="mb-4 mx-auto" style={{ color: 'var(--text-faint)', opacity: 0.35 }} />
           <p>Nothing here yet for this filter.</p>
           <p className="text-xs mt-1">Open an athlete's profile to load their content, or switch filters.</p>
         </div>
