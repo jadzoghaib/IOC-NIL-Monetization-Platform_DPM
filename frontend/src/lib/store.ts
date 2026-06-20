@@ -444,6 +444,16 @@ export function isSeeded(athleteId: string): boolean {
   return readArr<string>('mmo:seeded').includes(athleteId)
 }
 
+/** Wipe all seed data for an athlete so it can be re-seeded with updated content. */
+export function clearAthleteData(athleteId: string) {
+  writeArr('mmo:posts',        readArr<AthletePost>('mmo:posts').filter(p => p.athleteId !== athleteId))
+  writeArr('mmo:courses',      readArr<Course>('mmo:courses').filter(c => c.athleteId !== athleteId))
+  writeArr('mmo:appearances',  readArr<Appearance>('mmo:appearances').filter(a => a.athleteId !== athleteId))
+  writeArr('mmo:availability', readArr<AvailabilitySlot>('mmo:availability').filter(s => s.athleteId !== athleteId))
+  writeArr('mmo:unlocked',     readArr<string>('mmo:unlocked')) // keep course-unlock keys (course IDs are rotated on re-seed anyway)
+  writeArr('mmo:seeded',       readArr<string>('mmo:seeded').filter(id => id !== athleteId))
+}
+
 export function seedAthlete(
   athleteId: string,
   data: {

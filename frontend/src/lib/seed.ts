@@ -5,7 +5,7 @@
  * same data every time (seeded RNG), so the demo is stable.
  */
 import {
-  seedAthlete, isSeeded, uid,
+  seedAthlete, isSeeded, clearAthleteData, uid,
   listAppearances, addAppearance, listCourses, addCourse,
   AVAILABILITY_ACTIVITIES,
   type AthletePost, type Course, type AvailabilitySlot, type AthletePricing, type PostKind, type Appearance,
@@ -165,8 +165,13 @@ export function ensureSeeded(a: SeedAthlete) {
 
 function ensureDressel(a: SeedAthlete) {
   if (isSeeded(a.id)) {
-    topUpDressel(a)
-    return
+    // Detect stale seed (pre-v2): missing Calendly URLs or YouTube videoIds
+    const appr = listAppearances(a.id)
+    const crs  = listCourses(a.id)
+    const hasCalendly = appr.some(ap => ap.calendlyUrl)
+    const hasVideo    = crs.some(c => c.lessons.some(l => l.videoId))
+    if (hasCalendly && hasVideo) return  // already up-to-date
+    clearAthleteData(a.id)              // purge stale data and fall through to full re-seed
   }
 
   const pricing: AthletePricing = {
