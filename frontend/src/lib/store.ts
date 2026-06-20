@@ -54,9 +54,15 @@ export interface AthletePost {
   sponsoredBy?: string   // brand name when the post fulfils a sponsor deal
   likes: number
   createdAt: string
+  public?: boolean       // if true, visible to all fans without a subscription
 }
 
-export interface CourseLesson { title: string; duration: string }
+export interface CourseLesson {
+  title: string
+  duration: string
+  videoId?: string     // YouTube video ID — when set and course is unlocked, renders an embedded player
+  playlistId?: string  // YouTube playlist to load alongside the video
+}
 
 export interface Course {
   id: string
@@ -471,6 +477,14 @@ export function unlockCourse(courseId: string) {
   if (isCourseUnlocked(courseId)) return
   writeArr('mmo:unlocked', [...readArr<string>('mmo:unlocked'), courseId])
 }
+export function unlockAll(athleteId: string) {
+  const courses = listCourses(athleteId)
+  const current = readArr<string>('mmo:unlocked')
+  const toAdd = courses.map(c => c.id).filter(id => !current.includes(id))
+  if (toAdd.length) writeArr('mmo:unlocked', [...current, ...toAdd])
+  // also grant subscription if not already subscribed
+  if (!isSubscribed(athleteId)) subscribe(athleteId, 'tier_inner')
+}
 
 // ── Appearances (customisable, "open to discuss") ─────────────────────────────
 export interface Appearance {
@@ -481,6 +495,7 @@ export interface Appearance {
   price?: number
   details: string
   active: boolean
+  calendlyUrl?: string   // if set, "Book via Calendly" button is shown to fans
 }
 
 export function listAppearances(athleteId: string): Appearance[] {

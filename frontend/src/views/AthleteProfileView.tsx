@@ -15,7 +15,7 @@ import MedalDots from '../components/MedalDots'
 import { sportPictogramUrl, flagImageUrl } from '../lib/sportIcons'
 import {
   useStoreVersion, listSlots, getPricing,
-  listCourses, isCourseUnlocked, unlockCourse, listAppearances,
+  listCourses, isCourseUnlocked, unlockCourse, unlockAll, listAppearances,
   listPosts, listTiers, isSubscribed, subscribe, unsubscribe,
   type Course, type AthletePost, type SubscriptionTier,
 } from '../lib/store'
@@ -189,6 +189,9 @@ export default function AthleteProfileView({ athleteId, follows, onBack }: Props
       >
         ← Back
       </button>
+
+      {/* Demo bypass banner — Dressel case study only */}
+      {athleteId === 'caeleb_dressel' && <DemoBanner athleteId={athleteId} />}
 
       {/* Hero */}
       <div
@@ -595,6 +598,7 @@ function FanCourseModal({ course: c, athleteName, onClose }: { course: Course; a
   const accent = coaching ? '#2A9D8F' : '#FFD700'
   const price = coaching ? (c.coachingPrice ?? 99) : c.price
   const first = athleteName.split(' ')[0]
+  const [openLesson, setOpenLesson] = useState<number | null>(null)
 
   return (
     <motion.div
@@ -638,22 +642,43 @@ function FanCourseModal({ course: c, athleteName, onClose }: { course: Course; a
           <>
             <div className="text-[11px] uppercase tracking-widest text-white/30 mb-2">{c.lessons.length} lessons</div>
             <div className="space-y-1.5 mb-4">
-              {c.lessons.map((l, i) => (
-                <div key={i} className="flex items-center justify-between text-sm rounded-lg px-3 py-2"
-                  style={{ background: 'rgba(255,255,255,0.03)' }}>
-                  <span className="text-white/70 flex items-center gap-2">
-                    <span>{unlocked ? '▶' : <Lock size={12} style={{ color: 'var(--text-faint)' }} />}</span> {i + 1}. {l.title}
-                  </span>
-                  <span className="text-white/30 text-xs">{l.duration}</span>
-                </div>
-              ))}
+              {c.lessons.map((l, i) => {
+                const canPlay = unlocked && !!l.videoId
+                const isOpen = openLesson === i
+                return (
+                  <div key={i}>
+                    <button
+                      className="w-full flex items-center justify-between text-sm rounded-lg px-3 py-2 transition-colors"
+                      style={{ background: isOpen ? `${accent}18` : 'rgba(255,255,255,0.03)', border: isOpen ? `1px solid ${accent}40` : '1px solid transparent' }}
+                      onClick={() => canPlay && setOpenLesson(isOpen ? null : i)}
+                    >
+                      <span className="text-white/70 flex items-center gap-2 text-left">
+                        <span>{canPlay ? (isOpen ? '⏸' : '▶') : <Lock size={12} style={{ color: 'var(--text-faint)' }} />}</span>
+                        <span>{i + 1}. {l.title}</span>
+                      </span>
+                      <span className="text-white/30 text-xs flex-shrink-0">{l.duration}</span>
+                    </button>
+                    {isOpen && l.videoId && (
+                      <div className="mt-2 rounded-xl overflow-hidden" style={{ aspectRatio: '16/9' }}>
+                        <iframe
+                          src={`https://www.youtube.com/embed/${l.videoId}${l.playlistId ? `?list=${l.playlistId}` : ''}&rel=0&autoplay=1`}
+                          title={l.title}
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          className="w-full h-full"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
             {!unlocked ? (
               <PaywallButton accent={accent} label={`Unlock all lessons · ${fanMoney(price)}`} onUnlock={() => unlockCourse(c.id)} />
             ) : (
               <>
                 <div className="rounded-xl p-3 mb-4 text-sm text-emerald-300/80" style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}>
-                  <CheckCircle2 size={14} className="inline mr-1" color="#22C55E" /> Unlocked — all lessons are now available.
+                  <CheckCircle2 size={14} className="inline mr-1" color="#22C55E" /> Unlocked — click any lesson above to play it.
                 </div>
                 <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-white/30 mb-2"><MessageCircle size={11} /> Drills & Feedback</div>
                 <ChatThread threadId={`drills:${c.id}`} me="fan" otherName={first} accent={accent}
@@ -681,6 +706,27 @@ function PaywallButton({ accent, label, onUnlock }: { accent: string; label: str
   )
 }
 
+function DemoBanner({ athleteId }: { athleteId: string }) {
+  useStoreVersion()
+  const subscribed = isSubscribed(athleteId)
+  const [done, setDone] = useState(false)
+  if (subscribed || done) return null
+  const bypass = () => { unlockAll(athleteId); setDone(true) }
+  return (
+    <div className="mb-5 rounded-2xl border border-yellow-400/30 bg-yellow-400/[0.07] px-5 py-4 flex items-center justify-between gap-4">
+      <div>
+        <div className="text-yellow-300 font-bold text-sm mb-0.5">Demo mode</div>
+        <div className="text-white/50 text-xs">Skip the paywall to explore Caeleb's full profile — posts, courses, and booking.</div>
+      </div>
+      <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} onClick={bypass}
+        className="flex-shrink-0 px-4 py-2 rounded-xl text-xs font-bold"
+        style={{ background: 'linear-gradient(135deg,#FFD700,#F59E0B)', color: '#0A0B0D' }}>
+        Unlock all →
+      </motion.button>
+    </div>
+  )
+}
+
 // ── Behind-the-scenes content (fan-facing, subscription paywall) ──────────────
 function FanContentSection({ athleteId, athleteName, accent }: { athleteId: string; athleteName: string; accent: string }) {
   useStoreVersion()
@@ -690,13 +736,18 @@ function FanContentSection({ athleteId, athleteName, accent }: { athleteId: stri
   const first = athleteName.split(' ')[0]
   if (posts.length === 0) return null
 
+  const publicPosts = posts.filter(p => p.public)
+  const lockedPosts = posts.filter(p => !p.public)
+
   return (
     <div className="mb-8">
       <div className="flex items-end justify-between mb-4 gap-3">
         <div>
           <h2 className="font-display text-2xl text-white flex items-center gap-2"><Camera size={20} style={{ color: 'var(--text-muted)' }} /> BEHIND THE SCENES</h2>
           <p className="text-xs text-white/35">
-            {posts.length} subscriber-only post{posts.length !== 1 ? 's' : ''} from {first}
+            {lockedPosts.length > 0
+              ? `${lockedPosts.length} subscriber-only post${lockedPosts.length !== 1 ? 's' : ''} from ${first}`
+              : `Posts from ${first}`}
           </p>
         </div>
         {subscribed && (
@@ -707,22 +758,31 @@ function FanContentSection({ athleteId, athleteName, accent }: { athleteId: stri
         )}
       </div>
 
-      {subscribed ? (
-        <div className="space-y-3">
-          {posts.map(p => <UnlockedPostCard key={p.id} post={p} />)}
-          <button onClick={() => unsubscribe(athleteId)}
-            className="text-xs text-white/30 hover:text-white/60 transition-colors">
-            Manage subscription · Cancel
-          </button>
+      {/* Public posts — always visible */}
+      {publicPosts.length > 0 && (
+        <div className="space-y-3 mb-5">
+          {publicPosts.map(p => <UnlockedPostCard key={p.id} post={p} />)}
         </div>
-      ) : (
-        <>
-          {/* Locked teasers — fans can see that content exists, but not what it says */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
-            {posts.slice(0, 3).map(p => <LockedPostCard key={p.id} post={p} accent={accent} />)}
+      )}
+
+      {lockedPosts.length > 0 && (
+        subscribed ? (
+          <div className="space-y-3">
+            {lockedPosts.map(p => <UnlockedPostCard key={p.id} post={p} />)}
+            <button onClick={() => unsubscribe(athleteId)}
+              className="text-xs text-white/30 hover:text-white/60 transition-colors">
+              Manage subscription · Cancel
+            </button>
           </div>
-          <SubscribePanel athleteId={athleteId} first={first} tiers={tiers} accent={accent} count={posts.length} />
-        </>
+        ) : (
+          <>
+            {/* Locked teasers — fans can see that content exists, but not what it says */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+              {lockedPosts.slice(0, 3).map(p => <LockedPostCard key={p.id} post={p} accent={accent} />)}
+            </div>
+            <SubscribePanel athleteId={athleteId} first={first} tiers={tiers} accent={accent} count={lockedPosts.length} />
+          </>
+        )
       )}
     </div>
   )
@@ -860,7 +920,14 @@ function FanAvailabilityCard({ athleteId, athleteName }: { athleteId: string; at
                     {ap.priceMode === 'on_request' ? '💬 Open to discuss' : `from ${fanMoney(ap.price ?? 0)}`}
                   </span>
                 </div>
-                <p className="text-white/45 text-xs leading-relaxed">{ap.details}</p>
+                <p className="text-white/45 text-xs leading-relaxed mb-2">{ap.details}</p>
+                {ap.calendlyUrl && (
+                  <a href={ap.calendlyUrl} target="_blank" rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-opacity hover:opacity-80"
+                    style={{ background: 'linear-gradient(135deg,#00A2FF,#006FDB)', color: '#fff' }}>
+                    📅 Book via Calendly →
+                  </a>
+                )}
               </div>
             ))}
           </div>

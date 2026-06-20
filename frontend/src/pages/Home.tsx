@@ -340,40 +340,50 @@ export default function Home() {
 
                 {/* Live now tag */}
                 <div style={{ position: 'absolute', top: 20, left: 20, zIndex: 2 }}>
-                  <span style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 6,
-                    background: '#EE334E', color: '#fff',
-                    padding: '5px 12px', borderRadius: 100,
-                    fontSize: 12, fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase',
-                  }}>
+                  <a
+                    href="https://www.olympics.com/en/live/?entry_point_type=video_regwall&entry_point_tag=BAU&template=regwall"
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                      background: '#EE334E', color: '#fff',
+                      padding: '5px 12px', borderRadius: 100,
+                      fontSize: 12, fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase',
+                      textDecoration: 'none',
+                    }}>
                     <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#fff', display: 'inline-block', flexShrink: 0 }} />
                     Live now
-                  </span>
+                  </a>
                 </div>
 
                 {/* Glass caption chip */}
-                <div style={{
-                  position: 'relative', zIndex: 2, width: '100%',
-                  background: 'var(--glass)',
-                  backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 14, padding: '14px 18px',
-                  display: 'flex', alignItems: 'center', gap: 13,
-                  boxShadow: 'var(--shadow)',
-                }}>
+                <a
+                  href="https://www.olympics.com/en/live/?entry_point_type=video_regwall&entry_point_tag=BAU&template=regwall"
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    position: 'relative', zIndex: 2, width: '100%',
+                    background: 'var(--glass)',
+                    backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 14, padding: '14px 18px',
+                    display: 'flex', alignItems: 'center', gap: 13,
+                    boxShadow: 'var(--shadow)',
+                    textDecoration: 'none',
+                  }}>
                   <div style={{
                     width: 42, height: 42, borderRadius: 11, flexShrink: 0,
-                    background: 'var(--ink)', color: 'var(--ink-text)',
+                    background: '#EE334E', color: '#fff',
                     display: 'grid', placeItems: 'center',
-                    fontWeight: 900, fontSize: 17,
+                    fontWeight: 900, fontSize: 15,
                   }}>
-                    NL
+                    ▶
                   </div>
                   <div>
-                    <div style={{ fontWeight: 800, fontSize: 15, letterSpacing: '-0.01em', color: 'var(--text)' }}>Noah Lyles</div>
-                    <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, marginTop: 1 }}>🇺🇸 USA · 100m Sprint</div>
+                    <div style={{ fontWeight: 800, fontSize: 15, letterSpacing: '-0.01em', color: 'var(--text)' }}>Olympic TV</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, marginTop: 1 }}>Watch live on olympics.com →</div>
                   </div>
-                </div>
+                </a>
               </div>
             </motion.div>
           </div>

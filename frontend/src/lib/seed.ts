@@ -145,6 +145,10 @@ function buildSlots(a: SeedAthlete): AvailabilitySlot[] {
  */
 export function ensureSeeded(a: SeedAthlete) {
   if (!a.id) return
+  if (a.id === 'caeleb_dressel') {
+    ensureDressel(a)
+    return
+  }
   const L = levelOf(a)
   const pricing = pricingFor(L)
   if (!isSeeded(a.id)) {
@@ -157,6 +161,159 @@ export function ensureSeeded(a: SeedAthlete) {
     })
   }
   topUp(a, L, pricing.courseDefault)
+}
+
+function ensureDressel(a: SeedAthlete) {
+  if (isSeeded(a.id)) {
+    topUpDressel(a)
+    return
+  }
+
+  const pricing: AthletePricing = {
+    subscription: 19, socialPost: 5000, appearance: 15000, ambassador: 45000, courseDefault: 79,
+  }
+
+  const posts: AthletePost[] = [
+    // 3 public preview posts — visible without subscribing
+    {
+      id: uid('post'), athleteId: a.id, kind: 'photo', public: true,
+      caption: '7 medals across two Olympics. Never stops feeling surreal. Grateful for every lap, every team-mate, every fan who showed up. 🇺🇸🏊',
+      mediaUrl: a.thumbnail, likes: 94200,
+      createdAt: daysAgo(2),
+    },
+    {
+      id: uid('post'), athleteId: a.id, kind: 'text', public: true,
+      caption: 'First day back in the water post-break. Slow. Honest. Necessary. Growth doesn\'t come from comfort. 💪 #Training',
+      likes: 51800, createdAt: daysAgo(6),
+    },
+    {
+      id: uid('post'), athleteId: a.id, kind: 'video', public: true,
+      caption: 'Breaking down my underwater dolphin kick in slow-mo — the phase that separates good from great. Watch closely. 🎬 #SwimTips',
+      likes: 38600, createdAt: daysAgo(12),
+    },
+    // 4 subscription-locked posts
+    {
+      id: uid('post'), athleteId: a.id, kind: 'text',
+      caption: 'The mental side of racing nobody talks about: what I do the 60 seconds before I step on the block. Full breakdown inside 👇 #InnerCircle',
+      likes: 27400, createdAt: daysAgo(18),
+    },
+    {
+      id: uid('post'), athleteId: a.id, kind: 'photo',
+      caption: 'Behind the scenes: my strength programme this off-season. Numbers, sets, and exactly how I structure my week. 📋💪',
+      mediaUrl: a.thumbnail, likes: 19700, createdAt: daysAgo(25),
+    },
+    {
+      id: uid('post'), athleteId: a.id, kind: 'text',
+      caption: 'Sponsor deal breakdown — what I look for in a partner and what I\'ve turned down. Unfiltered. 🤝',
+      likes: 15200, createdAt: daysAgo(33),
+    },
+    {
+      id: uid('post'), athleteId: a.id, kind: 'video', sponsoredBy: 'Speedo',
+      caption: 'With Speedo since day one — the gear, the relationship, what it actually looks like behind the partnership. #Speedo',
+      likes: 22500, createdAt: daysAgo(40),
+    },
+  ]
+
+  const courses: Course[] = [
+    {
+      id: uid('course'), athleteId: a.id,
+      title: 'Swimming Technique Masterclass',
+      description: 'The exact underwater mechanics that powered 7 Olympic medals — broken down stroke by stroke, start to finish.',
+      price: pricing.courseDefault, level: 'Intermediate', format: 'standard',
+      lessons: [
+        { title: 'The Underwater Phase That Wins Races', duration: '14 min', videoId: '07CFoLlajmU', playlistId: 'PLZlsU_lxGy65MWskUjNo1niEywlHO4LWh' },
+        { title: 'Race-start mechanics & reaction time', duration: '11 min' },
+        { title: 'Stroke rate vs. distance-per-stroke', duration: '13 min' },
+        { title: 'Turn & breakout optimisation', duration: '10 min' },
+      ],
+      createdAt: daysAgo(20),
+    },
+    {
+      id: uid('course'), athleteId: a.id,
+      title: 'Strength & Conditioning for Swimmers',
+      description: 'The full gym programme behind elite swim power — explosive starts, shoulder stability, and injury prevention.',
+      price: pricing.courseDefault, level: 'Advanced', format: 'standard',
+      lessons: [
+        { title: 'Full Body Power for Explosive Starts', duration: '18 min', videoId: '7xhOfvq3u70', playlistId: 'PLZlsU_lxGy65kR0NYvTelcoTiUtiTuz_c' },
+        { title: 'Shoulder stability & longevity', duration: '16 min' },
+        { title: 'Weekly programme structure', duration: '12 min' },
+        { title: 'Recovery & load management', duration: '9 min' },
+      ],
+      createdAt: daysAgo(25),
+    },
+    {
+      id: uid('course'), athleteId: a.id,
+      title: '1:1 Video Coaching with Caeleb',
+      description: 'Send me a 90-second clip of your stroke or start. I\'ll return a frame-by-frame personal breakdown with a 4-week training plan. Limited to 10 athletes per month.',
+      price: 0, level: 'Advanced', format: 'coaching', coachingPrice: 199,
+      lessons: [],
+      createdAt: daysAgo(30),
+    },
+  ]
+
+  const slots: AvailabilitySlot[] = [
+    { id: uid('slot'), athleteId: a.id, date: daysAhead(5),  activity: 'Sponsored Post',   booked: false },
+    { id: uid('slot'), athleteId: a.id, date: daysAhead(9),  activity: 'Content Shoot',    booked: false },
+    { id: uid('slot'), athleteId: a.id, date: daysAhead(14), activity: 'Live Appearance',  booked: true  },
+    { id: uid('slot'), athleteId: a.id, date: daysAhead(21), activity: 'Brand Collab Day', booked: false },
+    { id: uid('slot'), athleteId: a.id, date: daysAhead(28), activity: 'Q&A / Livestream', booked: false },
+  ]
+
+  const appearances: Appearance[] = [
+    {
+      id: uid('appr'), athleteId: a.id, active: true,
+      type: 'Brand Partnership / Ambassador',
+      priceMode: 'from', price: 45000,
+      details: 'Long-form partnerships only — product alignment matters. Open to apparel, nutrition, and wellness brands.',
+      calendlyUrl: 'https://www.caelebdressel.com/',
+    },
+    {
+      id: uid('appr'), athleteId: a.id, active: true,
+      type: 'Corporate keynote / panel',
+      priceMode: 'from', price: 15000,
+      details: 'Performance mindset, resilience under pressure, elite preparation. Perfect for leadership events.',
+      calendlyUrl: 'https://www.caelebdressel.com/',
+    },
+    {
+      id: uid('appr'), athleteId: a.id, active: true,
+      type: 'Swimming clinic / masterclass',
+      priceMode: 'from', price: 3000,
+      details: 'Half-day technical clinic — stroke mechanics, starts, and race strategy for serious competitive swimmers.',
+      calendlyUrl: 'https://www.caelebdressel.com/',
+    },
+    {
+      id: uid('appr'), athleteId: a.id, active: true,
+      type: 'School / community visit',
+      priceMode: 'on_request',
+      details: 'Inspiration talks, Q&A sessions, and youth swim demonstrations. Reach out to discuss.',
+      calendlyUrl: 'https://www.caelebdressel.com/',
+    },
+  ]
+
+  seedAthlete(a.id, { posts, courses, slots, appearances, pricing })
+  topUpDressel(a)
+}
+
+function topUpDressel(a: SeedAthlete) {
+  if (listAppearances(a.id).length === 0) {
+    const appearances: Omit<Appearance, 'id'>[] = [
+      {
+        athleteId: a.id, active: true, type: 'Brand Partnership / Ambassador',
+        priceMode: 'from', price: 45000,
+        details: 'Long-form partnerships only — product alignment matters.',
+        calendlyUrl: 'https://www.caelebdressel.com/',
+      },
+    ]
+    appearances.forEach(ap => addAppearance(ap))
+  }
+  const courses = listCourses(a.id)
+  if (!courses.some(c => c.format === 'coaching')) {
+    addCourse({
+      athleteId: a.id, title: '1:1 Video Coaching with Caeleb',
+      description: 'Send me a 90-second clip of your stroke or start. I\'ll return a frame-by-frame breakdown with a 4-week training plan.',
+      price: 0, level: 'Advanced', format: 'coaching', coachingPrice: 199, lessons: [],
+    })
+  }
 }
 
 /** Add features that may not exist for athletes seeded under an older version. */

@@ -237,6 +237,22 @@ export default function DiscoverView({ follows, onViewProfile, games }: Props) {
         </div>
       </div>
 
+      {/* Archetype blurb — shown when a label filter is active */}
+      {labelFilter !== 'all' && (() => {
+        const active = ATHLETE_LABELS.find(l => l.key === labelFilter)
+        if (!active) return null
+        return (
+          <div className="mb-4 rounded-2xl px-4 py-3 flex items-center gap-3"
+            style={{ background: `${active.color}10`, border: `1px solid ${active.color}30` }}>
+            <span className="text-xl flex-shrink-0">{active.emoji}</span>
+            <div>
+              <span className="text-sm font-bold mr-2" style={{ color: active.color }}>{active.label}</span>
+              <span className="text-white/55 text-sm">{active.blurb}</span>
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Results count */}
       <div className="mb-4 text-xs font-semibold uppercase tracking-widest text-white/30">
         Showing {visible.length.toLocaleString()} of {total.toLocaleString()}
