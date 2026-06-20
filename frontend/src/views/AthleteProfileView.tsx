@@ -9,7 +9,7 @@ import type { AthleteRecord } from '../lib/api'
 import FollowButton from '../components/FollowButton'
 import NewsCard, { NewsFeedSkeleton } from '../components/NewsCard'
 import OfferingCard, { PortfolioOfferingCard } from '../components/OfferingCard'
-import { getPortfolio } from '../data/offerings'
+import { getPortfolio, CATEGORY_META } from '../data/offerings'
 import StarRating from '../components/StarRating'
 import MedalDots from '../components/MedalDots'
 import { sportPictogramUrl, flagImageUrl } from '../lib/sportIcons'
@@ -24,7 +24,7 @@ import { labelFor } from '../lib/athleteLabel'
 import ChatThread from '../components/ChatThread'
 import {
   Newspaper, RotateCcw, Handshake, Flag, Flame, Crown, Zap, Sparkles, Rocket, Dumbbell, Globe,
-  GraduationCap, Video, Lock, CheckCircle2, Camera, PenLine, LockOpen, Star, CalendarDays, MessageCircle,
+  GraduationCap, Video, Lock, CheckCircle2, Camera, PenLine, LockOpen, Star, CalendarDays, MessageCircle, X,
 } from 'lucide-react'
 
 interface Props {
@@ -58,6 +58,7 @@ export default function AthleteProfileView({ athleteId, follows, onBack }: Props
   const [loadingAthlete, setLoadingAthlete] = useState(true)
   const [offerings, setOfferings] = useState<any[]>([])
   const [aiStory, setAiStory] = useState<string | null>(null)
+  const [chatOffering, setChatOffering] = useState<{ id: string; title: string; cta: string; accent: string } | null>(null)
   const [aiArchetype, setAiArchetype] = useState<string | null>(null)
   const [loadingStory, setLoadingStory] = useState(false)
   const { articles, loading: loadingNews, stale, source, error, refresh: refreshNews } = useAthleteNews(athleteId)
@@ -497,7 +498,7 @@ export default function AthleteProfileView({ athleteId, follows, onBack }: Props
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
             {getPortfolio(athlete.name.split(' ')[0]).map((o, i) => (
               <PortfolioOfferingCard key={o.id} offering={o} index={i}
-                onContact={() => document.getElementById('athlete-availability')?.scrollIntoView({ behavior: 'smooth' })} />
+                onContact={() => setChatOffering({ id: o.id, title: o.title, cta: o.cta, accent: CATEGORY_META[o.category]?.color ?? '#FFD700' })} />
             ))}
           </div>
 
@@ -541,6 +542,55 @@ export default function AthleteProfileView({ athleteId, follows, onBack }: Props
           )}
         </div>
       </div>
+
+      {/* Offering inquiry chat sheet */}
+      <AnimatePresence>
+        {chatOffering && athlete && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-end justify-center"
+            style={{ background: 'rgba(0,0,0,0.72)' }}
+            onClick={() => setChatOffering(null)}
+          >
+            <motion.div
+              initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 28, stiffness: 260 }}
+              className="w-full max-w-lg rounded-t-3xl px-5 pt-5 pb-8"
+              style={{ background: 'var(--bg-card)', borderTop: `1px solid rgba(255,255,255,0.1)` }}
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Handle bar */}
+              <div className="w-10 h-1 rounded-full mx-auto mb-5" style={{ background: 'rgba(255,255,255,0.15)' }} />
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <div className="text-[10px] uppercase tracking-widest font-bold mb-0.5" style={{ color: chatOffering.accent }}>
+                    Send a message
+                  </div>
+                  <h3 className="font-semibold text-white text-base">{chatOffering.title}</h3>
+                  <p className="text-xs text-white/35 mt-0.5">with {athlete.name.split(' ')[0]}</p>
+                </div>
+                <button onClick={() => setChatOffering(null)} className="text-white/30 hover:text-white/60 transition-colors mt-1">
+                  <X size={18} />
+                </button>
+              </div>
+              <ChatThread
+                threadId={`offer:${athlete.id}:${chatOffering.id}`}
+                me="fan"
+                otherName={athlete.name.split(' ')[0]}
+                accent={chatOffering.accent}
+                placeholder={`Ask about ${chatOffering.title}…`}
+                emptyHint={`Start the conversation — ${athlete.name.split(' ')[0]}'s team will respond here.`}
+                quickReplies={[
+                  `I'm interested in ${chatOffering.title}`,
+                  'What are the available dates?',
+                  'Can you share pricing details?',
+                ]}
+                maxHeight={260}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   )
 }

@@ -84,14 +84,14 @@ export function PortfolioOfferingCard({ offering, index = 0, onContact }: Portfo
 
       {/* Body */}
       <div className="px-4 py-3 flex-1 flex flex-col">
-        <h4 className="font-semibold text-white text-sm mb-0.5 truncate">{offering.title}</h4>
+        <h4 className="font-semibold text-white text-sm mb-0.5">{offering.title}</h4>
         <p
-          className="text-xs italic mb-2.5 line-clamp-2"
+          className="text-xs italic mb-2.5"
           style={{ color: isHero ? 'rgba(255,215,0,0.6)' : `${meta.color}99` }}
         >
           {offering.tagline}
         </p>
-        <p className="text-xs text-white/45 leading-relaxed flex-1 line-clamp-3">{offering.description}</p>
+        <p className="text-xs text-white/45 leading-relaxed flex-1">{offering.description}</p>
       </div>
 
       {/* Footer / CTA */}
@@ -164,7 +164,7 @@ export default function OfferingCard({ offering, athleteName, index = 0, onConta
             )}
           </div>
         </div>
-        <p className="text-xs text-white/50 leading-relaxed mb-4 line-clamp-3">{offering.description}</p>
+        <p className="text-xs text-white/50 leading-relaxed mb-4">{offering.description}</p>
         {offering.sponsor && (
           <div className="flex items-start gap-2 mb-4 p-3 rounded-lg bg-gold/5 border border-gold/15">
             <span className="text-gold text-sm mt-0.5">💡</span>
