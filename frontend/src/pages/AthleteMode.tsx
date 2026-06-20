@@ -8,6 +8,7 @@ import AthleteRosterView from '../views/AthleteRosterView'
 import AthleteManageView from '../views/AthleteManageView'
 import SideNav from '../components/SideNav'
 import TopNav from '../components/TopNav'
+import AIAssistant from '../components/AIAssistant'
 import type { SideNavItem } from '../components/SideNav'
 
 const GAMES_LABEL: Record<GamesKey, { name: string; flag: string }> = {
@@ -28,6 +29,7 @@ export default function AthleteMode() {
   const [games, setGames] = useState<GamesKey | null>(null)
   const [athleteId, setAthleteId] = useState<string | null>(null)
   const [athleteName, setAthleteName] = useState<string>('')
+  const [athleteSport, setAthleteSport] = useState<string>('')
   const [sideNavOpen, setSideNavOpen] = useState(false)
 
   const pageStyle = { minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)', transition: 'background .4s, color .4s' }
@@ -136,15 +138,25 @@ export default function AthleteMode() {
               {!athleteId ? (
                 <AthleteRosterView key="roster" games={games} onPick={(id) => {
                   setAthleteId(id)
-                  api.getAthlete(id).then(r => setAthleteName(r.name)).catch(() => {})
+                  api.getAthlete(id).then(r => { setAthleteName(r.name); setAthleteSport(r.sport) }).catch(() => {})
                 }} />
               ) : (
-                <AthleteManageView key={`manage-${athleteId}`} athleteId={athleteId} onBack={() => { setAthleteId(null); setAthleteName('') }} />
+                <AthleteManageView key={`manage-${athleteId}`} athleteId={athleteId} onBack={() => { setAthleteId(null); setAthleteName(''); setAthleteSport('') }} />
               )}
             </AnimatePresence>
           </div>
         </main>
       </div>
+
+      {athleteId && (
+        <AIAssistant
+          mode="athlete"
+          managingAthleteId={athleteId}
+          managingAthleteName={athleteName}
+          managingAthleteSport={athleteSport}
+          onNavigateTo={() => {/* AthleteManageView handles internal nav */}}
+        />
+      )}
     </div>
   )
 }

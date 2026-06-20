@@ -10,6 +10,7 @@ import CampaignBuilderView from '../views/CampaignBuilderView'
 import SponsorOffersView from '../views/SponsorOffersView'
 import SideNav from '../components/SideNav'
 import TopNav from '../components/TopNav'
+import AIAssistant from '../components/AIAssistant'
 import type { SideNavItem } from '../components/SideNav'
 
 type View = 'roster' | 'athlete' | 'campaign' | 'offers'
@@ -184,6 +185,16 @@ export default function BusinessMode() {
           </div>
         </main>
       </div>
+
+      <AIAssistant
+        mode="business"
+        brandName={sponsor.brand}
+        brandCategory={sponsor.primaryCategory}
+        onViewProfile={(id) => { openAthlete(id) }}
+        onNavigateTo={(section) => {
+          if (['roster', 'campaign', 'offers'].includes(section)) goTo(section as View)
+        }}
+      />
     </div>
   )
 }

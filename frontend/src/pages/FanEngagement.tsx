@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { Trophy, Compass, LayoutList, RotateCcw, Heart } from 'lucide-react'
 import { useConnectionQuiz } from '../hooks/useConnectionQuiz'
@@ -12,8 +12,9 @@ import AthleteProfileView from '../views/AthleteProfileView'
 import MyFeedView from '../views/MyFeedView'
 import SideNav from '../components/SideNav'
 import TopNav from '../components/TopNav'
+import AIAssistant from '../components/AIAssistant'
 import type { SideNavItem } from '../components/SideNav'
-import type { GamesKey } from '../lib/api'
+import { api, type GamesKey } from '../lib/api'
 
 type Tab = 'quiz' | 'results' | 'discover' | 'feed' | 'profile'
 type Stage = 'games' | 'entry' | 'app'
@@ -39,9 +40,17 @@ export default function FanEngagement() {
   const [tab, setTab] = useState<Tab>(quickView ?? 'quiz')
   const [viewingAthlete, setViewingAthlete] = useState<string | null>(null)
   const [prevTab, setPrevTab] = useState<Tab>('quiz')
+  const [athleteCtx, setAthleteCtx] = useState<{ name: string; sport: string; country: string } | null>(null)
 
   const openProfile = (id: string) => { setPrevTab(tab); setViewingAthlete(id); setTab('profile') }
-  const closeProfile = () => { setViewingAthlete(null); setTab(prevTab) }
+  const closeProfile = () => { setViewingAthlete(null); setTab(prevTab); setAthleteCtx(null) }
+
+  useEffect(() => {
+    if (!viewingAthlete) { setAthleteCtx(null); return }
+    api.getAthlete(viewingAthlete)
+      .then(a => setAthleteCtx({ name: a.name, sport: a.sport, country: a.country }))
+      .catch(() => {})
+  }, [viewingAthlete])
   const handleGamesPicked = (g: GamesKey) => { setGames(g); setStage('entry') }
   const handleQuiz   = () => { setTab('quiz');     setStage('app') }
   const handleBrowse = () => { setTab('discover'); setStage('app') }
@@ -151,6 +160,21 @@ export default function FanEngagement() {
           </div>
         </main>
       </div>
+
+      <AIAssistant
+        mode="fan"
+        currentAthleteId={viewingAthlete ?? undefined}
+        currentAthleteName={athleteCtx?.name}
+        currentAthleteSport={athleteCtx?.sport}
+        currentAthleteCountry={athleteCtx?.country}
+        games={games ?? undefined}
+        onViewProfile={openProfile}
+        onOpenBooking={(id) => { openProfile(id) }}
+        onNavigateTo={(section) => {
+          setViewingAthlete(null)
+          if (['quiz', 'discover', 'feed'].includes(section)) setTab(section as Tab)
+        }}
+      />
     </div>
   )
 }

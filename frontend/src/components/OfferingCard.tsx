@@ -83,7 +83,7 @@ export function PortfolioOfferingCard({ offering, index = 0, onContact }: Portfo
       </div>
 
       {/* Body */}
-      <div className="px-4 py-3 flex-1 flex flex-col">
+      <div className="px-4 py-3 grow">
         <h4 className="font-semibold text-white text-sm mb-0.5">{offering.title}</h4>
         <p
           className="text-xs italic mb-2.5"
@@ -91,7 +91,7 @@ export function PortfolioOfferingCard({ offering, index = 0, onContact }: Portfo
         >
           {offering.tagline}
         </p>
-        <p className="text-xs text-white/45 leading-relaxed flex-1">{offering.description}</p>
+        <p className="text-xs text-white/45 leading-relaxed">{offering.description}</p>
       </div>
 
       {/* Footer / CTA */}
