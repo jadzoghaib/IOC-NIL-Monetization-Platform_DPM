@@ -496,7 +496,8 @@ export default function AthleteProfileView({ athleteId, follows, onBack }: Props
           {/* Portfolio grid — 2 columns on wider screens */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
             {getPortfolio(athlete.name.split(' ')[0]).map((o, i) => (
-              <PortfolioOfferingCard key={o.id} offering={o} index={i} />
+              <PortfolioOfferingCard key={o.id} offering={o} index={i}
+                onContact={() => document.getElementById('athlete-availability')?.scrollIntoView({ behavior: 'smooth' })} />
             ))}
           </div>
 
@@ -504,7 +505,9 @@ export default function AthleteProfileView({ athleteId, follows, onBack }: Props
           <FanCoursesSection athleteId={athlete.id} athleteName={athlete.name} />
 
           {/* Booking: subscription + appearances + open dates */}
-          <FanAvailabilityCard athleteId={athlete.id} athleteName={athlete.name} />
+          <div id="athlete-availability">
+            <FanAvailabilityCard athleteId={athlete.id} athleteName={athlete.name} />
+          </div>
 
           {/* Divider */}
           <div className="border-t border-white/[0.06] pt-4 mb-4">

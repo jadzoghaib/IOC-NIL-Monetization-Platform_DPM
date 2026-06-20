@@ -25,7 +25,7 @@ type WallItem =
   | { kind: 'course'; ts: number; aid: string; course: Course }
   | { kind: 'news';   ts: number; aid: string; article: NewsArticle }
 
-type TypeFilter = 'all' | 'post' | 'news' | 'course'
+type TabKey = 'feed' | 'posts' | 'news' | 'courses' | 'appearances'
 
 const money = (n: number) => (n >= 1000 ? `$${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1)}K` : `$${n}`)
 const relTime = (ts: number) => {
@@ -45,7 +45,7 @@ export default function MyFeedView({ follows, onViewProfile, onGoDiscover }: Pro
   const [news, setNews] = useState<Record<string, NewsArticle[]>>({})
   const [loading, setLoading] = useState(false)
   const [athleteFilter, setAthleteFilter] = useState<string>('all')
-  const [typeFilter, setTypeFilter] = useState<TypeFilter>('all')
+  const [activeTab, setActiveTab] = useState<TabKey>('feed')
 
   const followedKey = follows.followed.join(',')
 
@@ -89,8 +89,9 @@ export default function MyFeedView({ follows, onViewProfile, onGoDiscover }: Pro
     for (const c of listCourses(id)) items.push({ kind: 'course', ts: new Date(c.createdAt).getTime(), aid: id, course: c })
     for (const a of (news[id] ?? [])) items.push({ kind: 'news', ts: new Date(a.published ?? a.date ?? 0).getTime(), aid: id, article: a })
   }
+  const wallKindFilter = activeTab === 'posts' ? 'post' : activeTab === 'news' ? 'news' : activeTab === 'courses' ? 'course' : null
   const wall = items
-    .filter(i => typeFilter === 'all' || i.kind === typeFilter)
+    .filter(i => wallKindFilter === null || i.kind === wallKindFilter)
     .sort((a, b) => b.ts - a.ts)
     .slice(0, 120)
 
@@ -115,22 +116,23 @@ export default function MyFeedView({ follows, onViewProfile, onGoDiscover }: Pro
     )
   }
 
-  const TYPE_PILLS: { key: TypeFilter; label: string; icon: ReactNode }[] = [
-    { key: 'all',    label: 'Everything', icon: null },
-    { key: 'post',   label: 'Posts',      icon: <Camera size={11} /> },
-    { key: 'news',   label: 'News',       icon: <Newspaper size={11} /> },
-    { key: 'course', label: 'Courses',    icon: <GraduationCap size={11} /> },
+  const TABS: { key: TabKey; label: string; icon: ReactNode }[] = [
+    { key: 'feed',        label: 'Feed',        icon: <Inbox size={13} /> },
+    { key: 'posts',       label: 'Posts',       icon: <Camera size={13} /> },
+    { key: 'news',        label: 'News',        icon: <Newspaper size={13} /> },
+    { key: 'courses',     label: 'Courses',     icon: <GraduationCap size={13} /> },
+    { key: 'appearances', label: 'Appearances', icon: <CalendarDays size={13} /> },
   ]
 
   return (
     <motion.div key="feed" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}>
-      <div className="mb-6">
+      <div className="mb-5">
         <h1 className="font-display text-5xl text-white mb-2">MY WALL</h1>
         <p className="text-white/40 text-sm">Following {follows.followed.length} athlete{follows.followed.length !== 1 ? 's' : ''} · posts, news, courses & open dates in one place</p>
       </div>
 
       {/* Athlete chips */}
-      <div className="flex flex-wrap gap-2 mb-3">
+      <div className="flex flex-wrap gap-2 mb-4">
         <button onClick={() => setAthleteFilter('all')}
           className="px-3 py-1.5 rounded-full border text-xs font-semibold transition-all"
           style={athleteFilter === 'all' ? { borderColor: 'var(--border-2)', background: 'var(--surface)', color: 'var(--text)' } : { borderColor: 'var(--border)', color: 'var(--text-muted)' }}>
@@ -145,19 +147,24 @@ export default function MyFeedView({ follows, onViewProfile, onGoDiscover }: Pro
         ))}
       </div>
 
-      {/* Type pills */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        {TYPE_PILLS.map(t => (
-          <button key={t.key} onClick={() => setTypeFilter(t.key)}
-            className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-bold transition-all"
-            style={typeFilter === t.key ? { background: 'rgba(255,215,0,0.15)', color: '#FFD700', border: '1px solid rgba(255,215,0,0.3)' } : { background: 'transparent', color: 'var(--text-faint)', border: '1px solid var(--border)' }}>
-            {t.icon && <span className="flex-shrink-0">{t.icon}</span>}{t.label}
+      {/* Tab bar */}
+      <div className="flex border-b mb-5" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+        {TABS.map(t => (
+          <button key={t.key} onClick={() => setActiveTab(t.key)}
+            className="flex items-center gap-1.5 px-3 py-2.5 text-xs font-bold transition-all relative whitespace-nowrap"
+            style={activeTab === t.key
+              ? { color: '#FFD700' }
+              : { color: 'rgba(255,255,255,0.35)' }}>
+            {t.icon}{t.label}
+            {activeTab === t.key && (
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 rounded-t-full" style={{ background: '#FFD700' }} />
+            )}
           </button>
         ))}
       </div>
 
-      {/* Upcoming appointments */}
-      {appointments.length > 0 && (typeFilter === 'all') && (
+      {/* Upcoming appointments — shown only in Feed or Appearances tab */}
+      {appointments.length > 0 && (activeTab === 'feed' || activeTab === 'appearances') && (
         <div className="rounded-2xl border p-4 mb-6" style={{ borderColor: 'rgba(42,157,143,0.2)', background: 'rgba(42,157,143,0.05)' }}>
           <div className="flex items-center gap-1 text-[11px] font-black uppercase tracking-widest text-emerald-300/70 mb-2"><CalendarDays size={12} /> Open with your athletes</div>
           <div className="flex flex-wrap gap-2">
@@ -175,7 +182,15 @@ export default function MyFeedView({ follows, onViewProfile, onGoDiscover }: Pro
         </div>
       )}
 
-      {loading && wall.length === 0 && (
+      {/* Appearances-only tab panel */}
+      {activeTab === 'appearances' && appointments.length === 0 && (
+        <div className="text-center py-16 text-white/30">
+          <CalendarDays size={40} className="mb-4 mx-auto" style={{ color: 'var(--text-faint)', opacity: 0.35 }} />
+          <p>No open dates from your followed athletes yet.</p>
+        </div>
+      )}
+
+      {loading && wall.length === 0 && activeTab !== 'appearances' && (
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="rounded-xl border border-white/6 p-4 animate-pulse">
@@ -186,7 +201,7 @@ export default function MyFeedView({ follows, onViewProfile, onGoDiscover }: Pro
       )}
 
       {/* The wall */}
-      {wall.length > 0 && (
+      {wall.length > 0 && activeTab !== 'appearances' && (
         <div className="space-y-4">
           <AnimatePresence>
             {wall.map((item, i) => {
@@ -259,11 +274,11 @@ export default function MyFeedView({ follows, onViewProfile, onGoDiscover }: Pro
         </div>
       )}
 
-      {!loading && wall.length === 0 && (
+      {!loading && wall.length === 0 && activeTab !== 'appearances' && (
         <div className="text-center py-16 text-white/30">
           <SearchX size={40} className="mb-4 mx-auto" style={{ color: 'var(--text-faint)', opacity: 0.35 }} />
-          <p>Nothing here yet for this filter.</p>
-          <p className="text-xs mt-1">Open an athlete's profile to load their content, or switch filters.</p>
+          <p>Nothing here yet for this tab.</p>
+          <p className="text-xs mt-1">Open an athlete's profile to load their content, or switch tabs.</p>
         </div>
       )}
     </motion.div>

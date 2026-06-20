@@ -8,9 +8,10 @@ import { formatPrice } from '../lib/utils'
 interface PortfolioCardProps {
   offering: Offering
   index?: number
+  onContact?: () => void
 }
 
-export function PortfolioOfferingCard({ offering, index = 0 }: PortfolioCardProps) {
+export function PortfolioOfferingCard({ offering, index = 0, onContact }: PortfolioCardProps) {
   const meta   = CATEGORY_META[offering.category]
   const isHero = offering.highlight
 
@@ -83,14 +84,14 @@ export function PortfolioOfferingCard({ offering, index = 0 }: PortfolioCardProp
 
       {/* Body */}
       <div className="px-4 py-3 flex-1 flex flex-col">
-        <h4 className="font-semibold text-white text-sm mb-0.5">{offering.title}</h4>
+        <h4 className="font-semibold text-white text-sm mb-0.5 truncate">{offering.title}</h4>
         <p
-          className="text-xs italic mb-2.5"
+          className="text-xs italic mb-2.5 line-clamp-2"
           style={{ color: isHero ? 'rgba(255,215,0,0.6)' : `${meta.color}99` }}
         >
           {offering.tagline}
         </p>
-        <p className="text-xs text-white/45 leading-relaxed flex-1">{offering.description}</p>
+        <p className="text-xs text-white/45 leading-relaxed flex-1 line-clamp-3">{offering.description}</p>
       </div>
 
       {/* Footer / CTA */}
@@ -98,6 +99,7 @@ export function PortfolioOfferingCard({ offering, index = 0 }: PortfolioCardProp
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.97 }}
+          onClick={onContact}
           className="w-full py-2.5 rounded-xl text-xs font-bold tracking-wide transition-all"
           style={
             isHero
@@ -122,9 +124,10 @@ interface LegacyCardProps {
   offering: LegacyOffering
   athleteName: string
   index?: number
+  onContact?: () => void
 }
 
-export default function OfferingCard({ offering, athleteName, index = 0 }: LegacyCardProps) {
+export default function OfferingCard({ offering, athleteName, index = 0, onContact }: LegacyCardProps) {
   const isSub = offering.type === 'subscription'
 
   return (
@@ -151,7 +154,7 @@ export default function OfferingCard({ offering, athleteName, index = 0 }: Legac
             <span className="text-xs font-semibold uppercase tracking-widest text-white/30 mb-1 block">
               {isSub ? 'Monthly Subscription' : 'Custom Experience'}
             </span>
-            <h4 className="font-semibold text-white leading-tight">{offering.title}</h4>
+            <h4 className="font-semibold text-white leading-tight truncate">{offering.title}</h4>
           </div>
           <div className="text-right shrink-0">
             <div className="text-gold font-bold text-lg">{formatPrice(offering.price)}</div>
@@ -161,7 +164,7 @@ export default function OfferingCard({ offering, athleteName, index = 0 }: Legac
             )}
           </div>
         </div>
-        <p className="text-xs text-white/50 leading-relaxed mb-4">{offering.description}</p>
+        <p className="text-xs text-white/50 leading-relaxed mb-4 line-clamp-3">{offering.description}</p>
         {offering.sponsor && (
           <div className="flex items-start gap-2 mb-4 p-3 rounded-lg bg-gold/5 border border-gold/15">
             <span className="text-gold text-sm mt-0.5">💡</span>
@@ -174,6 +177,7 @@ export default function OfferingCard({ offering, athleteName, index = 0 }: Legac
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
+          onClick={onContact}
           className="w-full py-2.5 rounded-xl text-sm font-semibold transition-all duration-200"
           style={
             isSub

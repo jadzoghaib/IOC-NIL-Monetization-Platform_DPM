@@ -217,7 +217,8 @@ export default function ResultsView({ quiz, follows, onViewProfile }: Props) {
           <h2 className="font-display text-2xl text-white mb-4 flex items-center gap-2"><Gift size={18} /> {matchedAthlete.name.split(' ')[0]}'s OFFERINGS</h2>
           <div className="space-y-3 mb-6">
             {offerings.map((o, i) => (
-              <OfferingCard key={o.id} offering={o} athleteName={matchedAthlete.name} index={i} />
+              <OfferingCard key={o.id} offering={o} athleteName={matchedAthlete.name} index={i}
+                onContact={() => onViewProfile(matchedAthlete.id)} />
             ))}
           </div>
 

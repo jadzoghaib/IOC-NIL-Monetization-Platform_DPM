@@ -168,11 +168,11 @@ function ensureDressel(a: SeedAthlete) {
     // Detect stale seed: missing Calendly / videoIds, or swapped video IDs (pre-v3)
     const appr = listAppearances(a.id)
     const crs  = listCourses(a.id)
-    const hasCalendly = appr.some(ap => ap.calendlyUrl)
-    const hasVideo    = crs.some(c => c.lessons.some(l => l.videoId))
-    const swimCourse  = crs.find(c => c.title === 'Swimming Technique Masterclass')
+    const correctCalendly  = appr.some(ap => ap.calendlyUrl === 'https://calendly.com/jzoghaib15/30min')
+    const hasVideo         = crs.some(c => c.lessons.some(l => l.videoId))
+    const swimCourse       = crs.find(c => c.title === 'Swimming Technique Masterclass')
     const correctSwimVideo = swimCourse?.lessons.some(l => l.videoId === '7xhOfvq3u70')
-    if (hasCalendly && hasVideo && correctSwimVideo) return  // already up-to-date (v3)
+    if (correctCalendly && hasVideo && correctSwimVideo) return  // already up-to-date (v4)
     clearAthleteData(a.id)              // purge stale data and fall through to full re-seed
   }
 
@@ -272,28 +272,28 @@ function ensureDressel(a: SeedAthlete) {
       type: 'Brand Partnership / Ambassador',
       priceMode: 'from', price: 45000,
       details: 'Long-form partnerships only — product alignment matters. Open to apparel, nutrition, and wellness brands.',
-      calendlyUrl: 'https://www.caelebdressel.com/',
+      calendlyUrl: 'https://calendly.com/jzoghaib15/30min',
     },
     {
       id: uid('appr'), athleteId: a.id, active: true,
       type: 'Corporate keynote / panel',
       priceMode: 'from', price: 15000,
       details: 'Performance mindset, resilience under pressure, elite preparation. Perfect for leadership events.',
-      calendlyUrl: 'https://www.caelebdressel.com/',
+      calendlyUrl: 'https://calendly.com/jzoghaib15/30min',
     },
     {
       id: uid('appr'), athleteId: a.id, active: true,
       type: 'Swimming clinic / masterclass',
       priceMode: 'from', price: 3000,
       details: 'Half-day technical clinic — stroke mechanics, starts, and race strategy for serious competitive swimmers.',
-      calendlyUrl: 'https://www.caelebdressel.com/',
+      calendlyUrl: 'https://calendly.com/jzoghaib15/30min',
     },
     {
       id: uid('appr'), athleteId: a.id, active: true,
       type: 'School / community visit',
       priceMode: 'on_request',
       details: 'Inspiration talks, Q&A sessions, and youth swim demonstrations. Reach out to discuss.',
-      calendlyUrl: 'https://www.caelebdressel.com/',
+      calendlyUrl: 'https://calendly.com/jzoghaib15/30min',
     },
   ]
 
@@ -308,7 +308,7 @@ function topUpDressel(a: SeedAthlete) {
         athleteId: a.id, active: true, type: 'Brand Partnership / Ambassador',
         priceMode: 'from', price: 45000,
         details: 'Long-form partnerships only — product alignment matters.',
-        calendlyUrl: 'https://www.caelebdressel.com/',
+        calendlyUrl: 'https://calendly.com/jzoghaib15/30min',
       },
     ]
     appearances.forEach(ap => addAppearance(ap))
