@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 230 135">
+  <!-- Top row: Blue, Black, Red -->
+  <circle cx="38"  cy="45"  r="33" fill="none" stroke="#0081C8" stroke-width="8"/>
+  <circle cx="101" cy="45"  r="33" fill="none" stroke="#101010" stroke-width="8"/>
+  <circle cx="164" cy="45"  r="33" fill="none" stroke="#EE334E" stroke-width="8"/>
+  <!-- Bottom row: Yellow, Green (drawn after top row so they appear in front at intersections) -->
+  <circle cx="69"  cy="88"  r="33" fill="none" stroke="#FCB131" stroke-width="8"/>
+  <circle cx="132" cy="88"  r="33" fill="none" stroke="#009F3D" stroke-width="8"/>
+</svg>

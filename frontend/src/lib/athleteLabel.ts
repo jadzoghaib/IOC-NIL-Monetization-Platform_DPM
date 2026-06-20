@@ -69,7 +69,7 @@ export const ATHLETE_LABELS: AthleteLabel[] = [
     label: 'The Grinder',
     emoji: '💪',
     color: '#457B9D',
-    blurb: "Three or more Olympics and still going — the sport just can't shake them.",
+    blurb: "They've built a real career in the sport — recognized, battle-tested, and still showing up without the spotlight.",
   },
   {
     key: 'one_to_watch',
@@ -129,11 +129,9 @@ export function labelFor(a: Input): AthleteLabel {
   if (gold === 1) return BY_KEY.champion
   if (flag) return BY_KEY.hometown
   if (totalMedals > 0) return BY_KEY.fan_favorite
-  if (games >= 3) return BY_KEY.grinder
-  if ((stars >= 4 || pv >= 40000) && games <= 2) return BY_KEY.one_to_watch
-
-  const hasShot = (powerhouse && stars >= 3) || (games >= 2 && stars >= 2) || (powerhouse && games >= 2)
-  if (hasShot) return BY_KEY.underdog
+  if (stars >= 4 || pv >= 40000) return BY_KEY.one_to_watch
+  if (stars >= 3) return BY_KEY.grinder
+  if (powerhouse) return BY_KEY.underdog
 
   return BY_KEY.trailblazer
 }

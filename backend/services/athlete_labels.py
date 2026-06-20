@@ -68,22 +68,19 @@ def label_for(a: dict[str, Any]) -> str:
     if total_medals > 0:
         return "fan_favorite"  # an Olympic medallist fans rally behind
 
-    # ── Perseverance — the veteran who keeps coming back ──────────────────────
-    if games >= 3:
-        return "grinder"       # 3+ Olympics, still competing
+    # ── Buzz / trajectory — high momentum, no medal yet ──────────────────────
+    if stars >= 4 or pv >= 40000:
+        return "one_to_watch"  # strong attention signal
 
-    # ── Buzz / trajectory — a relative newcomer the crowd already picked ──────
-    if (stars >= 4 or pv >= 40000) and games <= 2:
-        return "one_to_watch"  # no medal yet, but strong momentum into the Games
+    # ── Recognized career without a breakthrough ──────────────────────────────
+    # stars >= 3 = above the baseline Wikipedia/Wikidata score — indicates
+    # an established athlete with a real career footprint, still grinding.
+    if stars >= 3:
+        return "grinder"
 
-    # ── Competitive long shot with a real footing ─────────────────────────────
-    has_shot = (
-        (powerhouse and stars >= 3)
-        or (games >= 2 and stars >= 2)
-        or (powerhouse and games >= 2)
-    )
-    if has_shot:
-        return "underdog"
+    # ── Competitive long shot from an established nation ──────────────────────
+    if powerhouse:
+        return "underdog"      # trained in a strong national pipeline, unproven at Olympic level
 
     # ── Pioneer — representing where there's no pipeline ──────────────────────
     return "trailblazer"
