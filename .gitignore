@@ -35,4 +35,9 @@ backend/enrich_*.txt
 
 # Large data / analysis files
 kano_analysis.xlsx
-backend/data/
+
+# Generated caches (re-built at runtime — not needed in repo)
+backend/data/athlete_news_cache.json
+backend/data/athlete_stories_cache.json
+backend/data/athlete_wiki_cache.json
+backend/data/__pycache__/
