@@ -6,7 +6,9 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { llmChat, type LLMMessage, type ToolDef } from '../lib/openrouter'
-import { api } from '../lib/api'
+import { api, type GamesKey } from '../lib/api'
+import { ensureSeeded } from '../lib/seed'
+import { listCourses, listAppearances, getPricing } from '../lib/store'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -29,6 +31,7 @@ interface ModeCfg {
 
 export interface AIAssistantProps {
   mode: Mode
+  games?: GamesKey
   // Fan context
   currentAthleteId?: string
   currentAthleteName?: string
@@ -58,7 +61,23 @@ const MODES: Record<Mode, ModeCfg> = {
 
 // ── System prompts ────────────────────────────────────────────────────────────
 
+// What every athlete on the platform offers — so the assistant never says
+// "I don't have that info" and instead looks it up with the right tool.
+const PLATFORM_KNOWLEDGE = `HOW THE PLATFORM WORKS — every athlete has:
+• COURSES — paid video lessons they teach (e.g. technique masterclasses, strength programmes) plus optional 1:1 video coaching. Use get_offerings to read an athlete's real courses.
+• APPEARANCES — bookable real-world engagements: club visits, coaching clinics, school/community talks, and corporate keynotes. THIS is what a club, school, or company hiring a "speaker" wants. Also via get_offerings.
+• POSTS & subscription tiers — behind-the-scenes content fans subscribe to.
+
+INFERENCE RULES (do this silently, never ask the user to clarify what you can deduce):
+• A CITY means its COUNTRY. Barcelona/Madrid → country "Spain". Paris/Lyon → "France". Milan/Rome → "Italy". London → "United Kingdom". Tokyo → "Japan". New York/LA → "United States".
+• "speaker", "talk", "clinic", "visit our club", "appearance" → the user wants APPEARANCES. Find a relevant athlete, then get_offerings to show what they offer.
+• "course", "lessons", "learn", "training programme", "masterclass" → the user wants COURSES → get_offerings.
+• Combine filters: "swimming speaker near Barcelona" → search_athletes(sport="Swimming", country="Spain"). Never free-text a sport+place into one query — split them into the sport and country fields.
+• If a precise sport+country search returns nobody, say so honestly, then broaden (drop the country, or suggest a globally notable athlete in that sport) — don't invent athletes.`
+
 function buildSystem(p: AIAssistantProps): string {
+  const gamesLabel = p.games === 'milan_2026' ? 'Milano-Cortina 2026 Winter Olympics' : 'Paris 2024 Summer Olympics'
+
   if (p.mode === 'fan') {
     const viewing = p.currentAthleteName
       ? `CURRENTLY VIEWING: ${p.currentAthleteName} — ${p.currentAthleteSport ?? ''}, ${p.currentAthleteCountry ?? ''} (athlete_id: "${p.currentAthleteId}")`
@@ -66,19 +85,22 @@ function buildSystem(p: AIAssistantProps): string {
     const follows = p.followedAthletes?.length
       ? `FOLLOWED: ${p.followedAthletes.slice(0, 6).map(a => a.name).join(', ')}`
       : ''
-    return `You are Maya, the My Match Olympics fan assistant. Help fans discover athletes and book experiences.
+    return `You are Maya, the My Match Olympics fan assistant. Help fans discover athletes, explore what they offer, and book experiences.
 
 ${viewing}
 ${follows}
-GAMES: Paris 2024 Summer Olympics
+GAMES: ${gamesLabel}
+
+${PLATFORM_KNOWLEDGE}
 
 TOOL RULES:
 • "this athlete" / "them" / "book them" → use athlete_id="${p.currentAthleteId ?? ''}" directly, no search needed
-• Unknown athlete → call search_athletes, then call show_athlete with the result
+• Finding athletes → call search_athletes with structured sport/country filters (not a vague text blob)
+• Questions about courses, lessons, clinics, talks, or speakers → call get_offerings for a relevant athlete and recommend a specific one from the real results
+• Always call show_athlete to display a clickable card for anyone you recommend — don't just name them in text
 • "book", "meet", "reserve" → call open_booking (navigates to profile + booking section)
-• Always call show_athlete to display a clickable card — don't just name an athlete in text
 
-STYLE: Max 2 sentences. Enthusiastic but brief. End with one suggested action.
+STYLE: Max 3 sentences. Enthusiastic but concrete — recommend a specific athlete and a specific course or appearance by name. End with one suggested action.
 FORMAT: Plain text only — no markdown, no asterisks for bold, no flag emojis, no country codes. Athletes' names stand alone without decorations.`
   }
 
@@ -87,9 +109,15 @@ FORMAT: Plain text only — no markdown, no asterisks for bold, no flag emojis, 
 
 MANAGING: ${p.managingAthleteName ?? 'athlete'} ${p.managingAthleteSport ? `(${p.managingAthleteSport})` : ''}
 
-Help the athlete grow their fan economy: content strategy, course design, availability, and sponsor relationships.
-Call navigate_to to take them directly to the right dashboard section.
-Available sections: dashboard, content, courses, availability, offers.
+Help the athlete grow their fan economy: content strategy, course design, pricing, availability, and sponsor relationships.
+
+THE STUDIO HAS 4 SECTIONS — call navigate_to to actually open the right one for them as you advise:
+• content — publish posts (photos, videos, text) for subscribers
+• courses — create paid video courses and 1:1 coaching
+• availability — "Rates & Dates": set pricing, bookable appearances (clinics, talks, club visits), and open dates
+• offers — inbox of sponsor deals to accept or decline
+
+When the user asks to do something (post, add a course, set a price, check offers), give one concrete tip AND call navigate_to so they land on that tab.
 
 STYLE: Strategic, concise, like a sports business advisor. One concrete action per message.
 FORMAT: Plain text only — no markdown, no asterisks, no bold formatting.`
@@ -100,10 +128,16 @@ FORMAT: Plain text only — no markdown, no asterisks, no bold formatting.`
 
 BRAND: ${p.brandName ?? 'your brand'} ${p.brandCategory ? `(${p.brandCategory})` : ''}
 
-Help brands find ideal Olympic athlete partners. Search athletes by sport/country/name, then show their cards.
-Always call show_athlete after searching so the user sees a clickable profile.
+Help brands find ideal Olympic athlete partners. Use search_athletes with structured sport/country filters, then show their cards.
 
-STYLE: Brand-partner language. Focus on audience fit, brand safety, ROI. 2 sentences max.
+${PLATFORM_KNOWLEDGE}
+
+TOOL RULES:
+• Finding athletes → search_athletes with sport and/or country filters (infer the country from any city the user names)
+• "what can they do for a campaign", appearances, clinics, keynotes → get_offerings to read their real bookable engagements
+• Always call show_athlete after searching so the user sees a clickable profile
+
+STYLE: Brand-partner language. Focus on audience fit, brand safety, ROI. 3 sentences max.
 FORMAT: Plain text only — no markdown, no asterisks, no bold formatting, no flag emojis.`
 }
 
@@ -113,14 +147,30 @@ const SEARCH: ToolDef = {
   type: 'function',
   function: {
     name: 'search_athletes',
-    description: 'Search Olympic athletes by name, sport, or country. Use this first when you don\'t know the athlete_id.',
+    description: 'Find Olympic athletes with structured filters. Combine sport + country to narrow precisely (e.g. swimmers from Spain). Always prefer the sport/country fields over a vague text query.',
     parameters: {
       type: 'object',
       properties: {
-        query: { type: 'string', description: 'Name, sport, or country' },
-        limit: { type: 'number', description: 'Max results 1–5, default 3' },
+        sport:   { type: 'string', description: 'Exact Olympic sport, e.g. "Swimming", "Athletics", "Artistic Swimming", "Judo", "Tennis". Map casual terms to the canonical sport ("track" → "Athletics").' },
+        country: { type: 'string', description: 'Full country NAME, never a city. Infer it from any city the user mentions (Barcelona → "Spain", Paris → "France", Milan → "Italy", London → "United Kingdom").' },
+        query:   { type: 'string', description: 'Free-text name lookup. Use ONLY to find a specific athlete by name; for discovery use sport/country instead.' },
+        limit:   { type: 'number', description: 'Max results 1–6, default 4' },
       },
-      required: ['query'],
+    },
+  },
+}
+
+const OFFERINGS: ToolDef = {
+  type: 'function',
+  function: {
+    name: 'get_offerings',
+    description: 'Get an athlete\'s actual courses (paid video lessons + 1:1 coaching) and bookable appearances (club visits, clinics, talks, keynotes). Use whenever the user asks about courses, lessons, training, clinics, talks, or hiring a speaker.',
+    parameters: {
+      type: 'object',
+      properties: {
+        athlete_id: { type: 'string', description: 'Athlete ID from search results or the current context' },
+      },
+      required: ['athlete_id'],
     },
   },
 }
@@ -160,14 +210,14 @@ const NAVIGATE: ToolDef = {
   type: 'function',
   function: {
     name: 'navigate_to',
-    description: 'Navigate to a section of the athlete dashboard.',
+    description: 'Open a section of the athlete studio for the user. Call this whenever you recommend an action so they land on the right tab.',
     parameters: {
       type: 'object',
       properties: {
         section: {
           type: 'string',
-          description: 'Target section',
-          enum: ['dashboard', 'content', 'courses', 'availability', 'offers'],
+          description: 'content = posts; courses = paid courses & 1:1 coaching; availability = Rates & Dates (pricing, appearances, booking slots); offers = sponsor offer inbox',
+          enum: ['content', 'courses', 'availability', 'offers'],
         },
       },
       required: ['section'],
@@ -176,16 +226,16 @@ const NAVIGATE: ToolDef = {
 }
 
 const TOOLS: Record<Mode, ToolDef[]> = {
-  fan:      [SEARCH, SHOW, BOOK],
+  fan:      [SEARCH, SHOW, OFFERINGS, BOOK],
   athlete:  [NAVIGATE],
-  business: [SEARCH, SHOW],
+  business: [SEARCH, SHOW, OFFERINGS],
 }
 
 // ── Welcome prompts ───────────────────────────────────────────────────────────
 
 const WELCOME = {
   fan:      { greeting: "Hi! I'm Maya — your Olympic fan assistant. What can I help you discover?",
-              prompts: ['Show me Caeleb Dressel', 'Best swimmers to follow', 'Book with this athlete'] },
+              prompts: ['Show me Caeleb Dressel', 'Good swimming courses?', 'A speaker for my club'] },
   athlete:  { greeting: "Welcome to Studio AI. Let's grow your fan economy.",
               prompts: ['What should I post today?', 'Help me set up a course', 'Open my offers'] },
   business: { greeting: "I'm Scout AI. Tell me about your brand and I'll find the perfect athlete partners.",
@@ -243,8 +293,16 @@ export default function AIAssistant(props: AIAssistantProps) {
 
   // ── Athlete lookup helpers ──────────────────────────────────────────────────
 
-  async function searchAthletes(query: string, limit = 3): Promise<AthleteCard[]> {
-    const page = await api.getAthletes({ search: query, limit })
+  async function searchAthletes(
+    opts: { sport?: string; country?: string; query?: string; limit?: number },
+  ): Promise<AthleteCard[]> {
+    const page = await api.getAthletes({
+      games:   props.games,
+      sport:   opts.sport,
+      country: opts.country,
+      search:  opts.query,
+      limit:   opts.limit ?? 4,
+    })
     return page.items.map(a => {
       const c: AthleteCard = { id: a.id, name: a.name, sport: a.sport, country: a.country, flag: a.flag }
       cache.current.set(a.id, c)
@@ -260,7 +318,7 @@ export default function AIAssistant(props: AIAssistantProps) {
       cache.current.set(a.id, c)
       return c
     } catch {
-      const found = name ? await searchAthletes(name, 1) : []
+      const found = name ? await searchAthletes({ query: name, limit: 1 }) : []
       return found[0] ?? null
     }
   }
@@ -307,8 +365,15 @@ export default function AIAssistant(props: AIAssistantProps) {
           let result  = ''
 
           if (fname === 'search_athletes') {
-            const hits = await searchAthletes(String(args.query), Number(args.limit ?? 3))
-            result = JSON.stringify(hits)
+            const hits = await searchAthletes({
+              sport:   args.sport ? String(args.sport) : undefined,
+              country: args.country ? String(args.country) : undefined,
+              query:   args.query ? String(args.query) : undefined,
+              limit:   Number(args.limit ?? 4),
+            })
+            result = hits.length
+              ? JSON.stringify(hits)
+              : 'No athletes matched those filters. Tell the user honestly, then try broadening (drop the country, or suggest a globally notable athlete in that sport).'
           }
 
           else if (fname === 'show_athlete') {
@@ -318,6 +383,41 @@ export default function AIAssistant(props: AIAssistantProps) {
             )
             if (athlete) pendingUi.push({ id: uid(), role: 'athlete_card', athlete })
             result = athlete ? `Card shown: ${athlete.name}` : 'Athlete not found'
+          }
+
+          else if (fname === 'get_offerings') {
+            const athlete = await resolveAthlete(String(args.athlete_id))
+            if (athlete) {
+              // Seed deterministic demo offerings the first time, then read them.
+              ensureSeeded({ id: athlete.id, name: athlete.name, sport: athlete.sport, country: athlete.country })
+              // Digging into an athlete's offerings = recommending them, so surface
+              // a clickable card (deduped) the user can tap to view/book.
+              if (!pendingUi.some(m => m.role === 'athlete_card' && m.athlete.id === athlete.id)) {
+                pendingUi.push({ id: uid(), role: 'athlete_card', athlete })
+              }
+              const courses = listCourses(athlete.id)
+              const appearances = listAppearances(athlete.id).filter(a => a.active)
+              const pricing = getPricing(athlete.id)
+              result = JSON.stringify({
+                athlete: athlete.name,
+                sport: athlete.sport,
+                courses: courses.map(c => ({
+                  title: c.title,
+                  level: c.level,
+                  format: c.format ?? 'standard',
+                  price: c.format === 'coaching' ? c.coachingPrice : c.price,
+                  lessons: c.lessons.map(l => l.title),
+                })),
+                bookable_appearances: appearances.map(a => ({
+                  type: a.type,
+                  price: a.priceMode === 'from' ? `from $${a.price}` : 'on request',
+                  details: a.details,
+                })),
+                subscription_per_month: pricing.subscription,
+              })
+            } else {
+              result = 'Athlete not found'
+            }
           }
 
           else if (fname === 'open_booking') {

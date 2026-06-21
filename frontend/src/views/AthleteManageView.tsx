@@ -24,9 +24,14 @@ interface AthleteInfo {
   medal_totals?: { gold: number; silver: number; bronze: number }
 }
 
+export type ManageSection = 'content' | 'courses' | 'availability' | 'offers'
+
 interface Props {
   athleteId: string
   onBack: () => void
+  // Optional controlled section — lets Studio AI navigate the studio for the user.
+  section?: ManageSection
+  onSectionChange?: (s: ManageSection) => void
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -515,13 +520,17 @@ function OffersTab({ athleteId, athleteName }: { athleteId: string; athleteName:
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
-type Tab = 'content' | 'courses' | 'availability' | 'offers'
+type Tab = ManageSection
 
-export default function AthleteManageView({ athleteId, onBack }: Props) {
+export default function AthleteManageView({ athleteId, onBack, section, onSectionChange }: Props) {
   useStoreVersion()
   const [athlete, setAthlete] = useState<AthleteInfo | null>(null)
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState<Tab>('content')
+  // Dual-mode: controlled by `section` when provided (so Studio AI can drive it),
+  // otherwise self-managed.
+  const [internalTab, setInternalTab] = useState<Tab>('content')
+  const tab = section ?? internalTab
+  const setTab = (t: Tab) => { setInternalTab(t); onSectionChange?.(t) }
 
   useEffect(() => {
     setLoading(true)

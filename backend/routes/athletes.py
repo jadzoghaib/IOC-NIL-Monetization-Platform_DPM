@@ -1,4 +1,5 @@
 import json
+import re
 from pathlib import Path
 from fastapi import APIRouter, HTTPException, Query
 
@@ -53,6 +54,47 @@ def _normalize_sport(s: str) -> str:
     return SPORT_NORMALIZE.get(s, s)
 
 
+# Trailing Wikipedia disambiguators like "(runner)", "(swimmer)",
+# "(footballer, born 1996)" — a trailing parenthetical containing a lowercase
+# letter or digit. Uppercase-only groups (e.g. "(II)") are kept.
+_DISAMBIG_RE = re.compile(r"\s*\([^)]*?[a-z0-9][^)]*\)\s*$")
+
+# Signature of UTF-8 bytes that were decoded as cp1252/latin-1 (classic mojibake).
+_MOJI_SIG = re.compile(r"Ã.|Â.|Å.|Ä.|â€")
+
+
+def _fix_mojibake(s: str) -> str:
+    """Repair UTF-8 that was decoded as cp1252/latin-1 (e.g. 'CÃ©sar' -> 'César').
+
+    Self-validating and iterative: re-encodes via cp1252 (falling back to
+    latin-1) and decodes as UTF-8, only keeping the result when the round-trip
+    succeeds. Loops to undo multi-layer mojibake. Already-correct names carry no
+    signature, or fail the round-trip, so they are left untouched.
+    """
+    for _ in range(3):
+        if not _MOJI_SIG.search(s):
+            break
+        cand = None
+        for enc in ("cp1252", "latin-1"):
+            try:
+                cand = s.encode(enc).decode("utf-8")
+                break
+            except (UnicodeEncodeError, UnicodeDecodeError):
+                continue
+        if cand is None or cand == s:
+            break
+        s = cand
+    return s
+
+
+def _clean_name(name: str) -> str:
+    if not name:
+        return name
+    name = _fix_mojibake(name)
+    name = _DISAMBIG_RE.sub("", name).strip()
+    return name
+
+
 def _looks_like_athlete(a: dict) -> bool:
     name = a.get("name", "")
     t = name.lower()
@@ -86,6 +128,9 @@ def _load() -> list[dict]:
                     continue
                 if norm:
                     a["sport"] = norm
+                # Repair encoding + strip Wikipedia disambiguators on the display name
+                if a.get("name"):
+                    a["name"] = _clean_name(a["name"])
                 cleaned.append(a)
             _cache = cleaned
             _cache_mtime = current_mtime

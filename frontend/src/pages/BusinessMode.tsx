@@ -188,6 +188,7 @@ export default function BusinessMode() {
 
       <AIAssistant
         mode="business"
+        games={games}
         brandName={sponsor.brand}
         brandCategory={sponsor.primaryCategory}
         onViewProfile={(id) => { openAthlete(id) }}

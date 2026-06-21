@@ -5,7 +5,7 @@ import { api } from '../lib/api'
 import type { GamesKey } from '../lib/api'
 import GamesPickerView from '../views/GamesPickerView'
 import AthleteRosterView from '../views/AthleteRosterView'
-import AthleteManageView from '../views/AthleteManageView'
+import AthleteManageView, { type ManageSection } from '../views/AthleteManageView'
 import SideNav from '../components/SideNav'
 import TopNav from '../components/TopNav'
 import AIAssistant from '../components/AIAssistant'
@@ -30,6 +30,7 @@ export default function AthleteMode() {
   const [athleteId, setAthleteId] = useState<string | null>(null)
   const [athleteName, setAthleteName] = useState<string>('')
   const [athleteSport, setAthleteSport] = useState<string>('')
+  const [section, setSection] = useState<ManageSection>('content')
   const [sideNavOpen, setSideNavOpen] = useState(false)
 
   const pageStyle = { minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)', transition: 'background .4s, color .4s' }
@@ -138,10 +139,13 @@ export default function AthleteMode() {
               {!athleteId ? (
                 <AthleteRosterView key="roster" games={games} onPick={(id) => {
                   setAthleteId(id)
+                  setSection('content')
                   api.getAthlete(id).then(r => { setAthleteName(r.name); setAthleteSport(r.sport) }).catch(() => {})
                 }} />
               ) : (
-                <AthleteManageView key={`manage-${athleteId}`} athleteId={athleteId} onBack={() => { setAthleteId(null); setAthleteName(''); setAthleteSport('') }} />
+                <AthleteManageView key={`manage-${athleteId}`} athleteId={athleteId}
+                  section={section} onSectionChange={setSection}
+                  onBack={() => { setAthleteId(null); setAthleteName(''); setAthleteSport('') }} />
               )}
             </AnimatePresence>
           </div>
@@ -154,7 +158,14 @@ export default function AthleteMode() {
           managingAthleteId={athleteId}
           managingAthleteName={athleteName}
           managingAthleteSport={athleteSport}
-          onNavigateTo={() => {/* AthleteManageView handles internal nav */}}
+          onNavigateTo={(s) => {
+            // Studio AI drives the studio: jump to the section it recommends.
+            const map: Record<string, ManageSection> = {
+              content: 'content', courses: 'courses',
+              availability: 'availability', offers: 'offers', dashboard: 'content',
+            }
+            if (map[s]) setSection(map[s])
+          }}
         />
       )}
     </div>

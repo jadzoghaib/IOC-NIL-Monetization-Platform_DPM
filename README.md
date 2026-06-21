@@ -64,14 +64,30 @@ User message
     ↓
 LLM decides: text reply OR call a tool
     ↓
-Tool execution (search_athletes / show_athlete / open_booking / navigate_to)
+Tool execution (search_athletes / show_athlete / get_offerings / open_booking / navigate_to)
     ↓
 Result fed back to LLM → next iteration or final reply
     ↓
-UI renders: text bubble + clickable athlete cards
+UI renders: text bubble + clickable athlete cards (tap to open a profile or book)
 ```
 
-Each assistant has a **mode-scoped system prompt** — Maya knows about the current athlete being viewed and followed athletes; Studio AI knows which athlete's studio is open; Scout AI knows the brand name and category. They never bleed into each other's context.
+Each assistant has a **mode-scoped system prompt and tool set** — they never bleed into each other's context:
+
+| Assistant | Mode | Tools | What it does |
+|-----------|------|-------|--------------|
+| **Maya** (gold) | Fan | search, show card, get offerings, open booking | Discover athletes, surface real courses & bookable appearances, open the booking flow |
+| **Studio AI** (teal) | Athlete | navigate | Strategic advice **and actively switches the studio** to the right tab (content / courses / rates / offers) |
+| **Scout AI** (purple) | Sponsor | search, show card, get offerings | Product-fit scouting, brand-safety read, campaign-fit analysis of an athlete's appearances |
+
+**Structured, grounded tool calls** — the agent doesn't guess:
+
+- `search_athletes` takes separate **sport** and **country** filters (not a fuzzy blob), so "a swimming speaker near Barcelona" resolves to `sport=Swimming, country=Spain`. The system prompt teaches it to infer a country from any city (Barcelona → Spain, Milan → Italy) and to broaden honestly rather than invent athletes when a search is empty.
+- `get_offerings` reads an athlete's **real** courses (titles, levels, prices, 1:1 coaching) and bookable appearances (clinics, talks, club visits, keynotes) from the store, so answers about courses or speakers are concrete, not hallucinated.
+- All replies are plain text (markdown stripped both in the prompt and at render time) so the chat reads naturally.
+
+### Data quality
+
+Athlete display names are repaired at the serving layer (`backend/routes/athletes.py`): a self-validating mojibake fixer (UTF-8 mis-decoded as cp1252/latin-1, e.g. `CÃ©sar` → `César`) and a Wikipedia-disambiguation stripper (`Josh Kerr (runner)` → `Josh Kerr`). Correctly-encoded names are left untouched, so every view — discover, profiles, chat cards — shows clean names.
 
 ---
 
