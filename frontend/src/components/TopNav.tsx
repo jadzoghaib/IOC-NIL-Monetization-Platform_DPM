@@ -61,7 +61,7 @@ export default function TopNav({ onMenuOpen, extra }: Props) {
             color: 'var(--text)',
             fontFamily: '"Archivo", system-ui, -apple-system, sans-serif',
           }}>
-            MY MATCH
+            PODIUM
             <span style={{ fontWeight: 600, color: 'var(--text-muted)' }}> · Olympics</span>
           </span>
         </button>

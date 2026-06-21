@@ -32,7 +32,7 @@ export default function SideNav({ accent, modeIcon, modeLabel, items, active, on
         className="px-5 pt-5 pb-4 text-left group block"
       >
         <div className="font-display text-base text-gold tracking-widest leading-snug group-hover:opacity-70 transition-opacity">
-          MY MATCH
+          PODIUM
         </div>
         <div className="font-display text-[9px] text-gold/40 tracking-[0.25em] uppercase">
           Olympics

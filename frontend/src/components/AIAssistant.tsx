@@ -85,7 +85,7 @@ function buildSystem(p: AIAssistantProps): string {
     const follows = p.followedAthletes?.length
       ? `FOLLOWED: ${p.followedAthletes.slice(0, 6).map(a => a.name).join(', ')}`
       : ''
-    return `You are Maya, the My Match Olympics fan assistant. Help fans discover athletes, explore what they offer, and book experiences.
+    return `You are Maya, the Podium Olympics fan assistant. Help fans discover athletes, explore what they offer, and book experiences.
 
 ${viewing}
 ${follows}
@@ -105,7 +105,7 @@ FORMAT: Plain text only — no markdown, no asterisks for bold, no flag emojis, 
   }
 
   if (p.mode === 'athlete') {
-    return `You are Studio AI, the private performance assistant inside My Match Olympics Athlete Studio.
+    return `You are Studio AI, the private performance assistant inside Podium Olympics Athlete Studio.
 
 MANAGING: ${p.managingAthleteName ?? 'athlete'} ${p.managingAthleteSport ? `(${p.managingAthleteSport})` : ''}
 
@@ -124,7 +124,7 @@ FORMAT: Plain text only — no markdown, no asterisks, no bold formatting.`
   }
 
   // business
-  return `You are Scout AI, the sponsorship intelligence assistant for My Match Olympics.
+  return `You are Scout AI, the sponsorship intelligence assistant for Podium Olympics.
 
 BRAND: ${p.brandName ?? 'your brand'} ${p.brandCategory ? `(${p.brandCategory})` : ''}
 

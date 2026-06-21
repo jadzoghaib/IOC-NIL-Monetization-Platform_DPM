@@ -45,7 +45,7 @@ export async function llmChat(messages: LLMMessage[], tools?: ToolDef[]): Promis
       Authorization: `Bearer ${KEY}`,
       'Content-Type': 'application/json',
       'HTTP-Referer': window.location.origin,
-      'X-Title': 'My Match Olympics',
+      'X-Title': 'Podium Olympics',
     },
     body: JSON.stringify(body),
   })

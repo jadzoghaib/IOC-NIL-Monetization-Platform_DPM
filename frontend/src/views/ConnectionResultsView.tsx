@@ -95,7 +95,7 @@ export default function ConnectionResultsView({ quiz, follows, games, onViewProf
           <ShareButton
             color={top.stars >= 4.5 ? '#FFD700' : top.stars >= 3.5 ? '#C0C0C0' : '#CD7F32'}
             title={`My Olympic Match: ${top.athlete.name}`}
-            caption={`My top Olympic match is ${top.athlete.flag} ${top.athlete.name} (${top.athlete.sport}) on My Match · Olympics. Who's yours?`}
+            caption={`My top Olympic match is ${top.athlete.flag} ${top.athlete.name} (${top.athlete.sport}) on Podium · Olympics. Who's yours?`}
             filenameBase={`my-olympic-match-${top.athlete.name.toLowerCase().replace(/\s+/g, '-')}`}
             buttonLabel="Share my match"
             eventLabel="match"

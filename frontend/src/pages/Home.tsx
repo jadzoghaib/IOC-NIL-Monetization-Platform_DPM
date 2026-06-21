@@ -168,7 +168,7 @@ export default function Home() {
           >
             <OlympicRings size="xs" animate={false} />
             <span style={{ fontWeight: 900, letterSpacing: '-0.03em', fontSize: 19, color: 'var(--text)' }}>
-              MY MATCH
+              PODIUM
               <span style={{ fontWeight: 600, color: 'var(--text-muted)' }}> · Olympics</span>
             </span>
           </button>
@@ -423,7 +423,7 @@ export default function Home() {
           display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap',
         }}>
           <OlympicRings size="xs" animate={false} mono />
-          <span>My Match · Olympics — concept redesign</span>
+          <span>Podium · Olympics — concept redesign</span>
           <span style={{ marginLeft: 'auto' }}>Not affiliated with or endorsed by the IOC.</span>
         </div>
       </footer>

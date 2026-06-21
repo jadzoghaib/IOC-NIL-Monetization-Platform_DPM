@@ -122,7 +122,7 @@ export default function ResultsView({ quiz, follows, onViewProfile }: Props) {
           <ShareButton
             color={color}
             title={`My Olympic Archetype: ${archetype.name}`}
-            caption={`I'm ${archetype.emoji} ${archetype.name} — my Olympic fan archetype on My Match · Olympics. "${archetype.tagline}" What's yours?`}
+            caption={`I'm ${archetype.emoji} ${archetype.name} — my Olympic fan archetype on Podium · Olympics. "${archetype.tagline}" What's yours?`}
             filenameBase={`my-olympic-archetype-${archetype.name.toLowerCase().replace(/\s+/g, '-')}`}
             buttonLabel="Share my archetype"
             eventLabel="archetype"

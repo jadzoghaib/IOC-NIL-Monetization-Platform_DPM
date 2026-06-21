@@ -78,7 +78,7 @@ export default function FanEngagement() {
 
   // ── Main app — with sidebar ────────────────────────────────────────────
   const navItems: SideNavItem[] = [
-    { id: 'quiz',     label: 'My Match', icon: <Trophy size={16} /> },
+    { id: 'quiz',     label: 'My Athlete', icon: <Trophy size={16} /> },
     { id: 'discover', label: 'Discover', icon: <Compass size={16} /> },
     { id: 'feed',     label: 'My Wall',  icon: <LayoutList size={16} />, badge: follows.followed.length || undefined },
   ]
